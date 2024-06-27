@@ -32,7 +32,9 @@ def main():
 @app.route("/home", methods=['GET'])
 def home():          
     if "loggedIn" in session:              
-        return render_template("home.html")
+        return render_template("home.html",
+                               name = session["fullName"]
+                               )
     return redirect("/login")
 
 @app.route("/login", methods=['GET'])
@@ -57,7 +59,7 @@ def loginCallback():
         return jsonify({'status':200}) #Return succes
     return jsonify({'status':401}) #Return Not authorized
 
-@app.route("/logout", methods=['POST'])
+@app.route("/logout", methods=['GET'])
 def logout():
     return render_template("login.html")
 

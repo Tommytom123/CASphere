@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>CASphere</title>
+    <!--Bootstrap init-->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <!--Fonts init-->
+    
+    <!-- Menu Icon -->
+    <link rel="apple-touch-icon" sizes="180x180" href="/static/favicon/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/static/favicon/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/static/favicon/favicon-16x16.png">
+    <link rel="manifest" href="/static/favicon/site.webmanifest">
+    
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #e4e4e4;
+            margin: 0;
+        }
+        .card {
+            max-width: 500px;
+            
+            min-width:  200px;
+            width: 100%;
+            height: 220px;
+            position: relative;
+        }
+        .align-bottom {
+            position: absolute;
+            bottom: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="card mb-3">
+        <div class="row g-0 h-100">
+            <div class="col-md-5 h-100 bg-info">
+                
+            </div>
+            <div class="col-md-7">
+                <div class="card-body">
+                    <h5 class="card-title">CASphere - Login</h5>
+                    <p class="card-text h-100">Login</p>
+                    
+
+
+                    <script src="https://accounts.google.com/gsi/client?hl=en" async></script>
+                    <script>
+                      async function handleCredentialResponse(response) {
+                        //console.log("Encoded JWT ID token: " + response.credential);
+                        // Send the JWT ID token (response.credential) to login endpoint
+                        console.log("Logging in")
+                        var response = await fetch("/login/callback",{
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                            },
+                            body: JSON.stringify({
+                                authToken: response.credential
+                            })
+                        }
+                        )
+                        var responseObj = await response.json()
+                        if (responseObj.status == 200){
+                            window.location.href = "https://localhost:5000/home";
+                            return
+                        } // Show error message
+                        console.log("Error")
+                    }
+                      window.onload = function () {
+                        google.accounts.id.initialize({
+                          client_id: "300028427783-2mnga77mhs3dcrl36rmsk8to8bc9dk0v.apps.googleusercontent.com",
+                          callback: handleCredentialResponse
+                        });
+                        google.accounts.id.renderButton(
+                          document.getElementById("buttonDiv"),
+                          { theme: "filled_black", size: "large", logo_alignment:"left",locale:"en"
+                           }  
+                        );
+                        //google.accounts.id.prompt(); // also display the One Tap dialog
+                      }
+                    </script>
+                    <div id="buttonDiv"></div>
+                
+
+                    <p class="card-text align-bottom pb-1"><small class="text-muted">CASphere @2024</small></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</html>

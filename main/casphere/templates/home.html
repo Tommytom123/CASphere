@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>CASphere</title>
+    <!--Bootstrap init-->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <!--Fonts init-->
+    
+    <!-- Menu Icon -->
+    <link rel="apple-touch-icon" sizes="180x180" href="/static/favicon/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/static/favicon/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/static/favicon/favicon-16x16.png">
+    <link rel="manifest" href="/static/favicon/site.webmanifest">
+    
+     <!-- move this into seperate file-->
+    <style>
+      .navbar-custom {
+        background-color: #fefefe;
+      }
+
+      .navbar-custom .navbar-brand,
+      .navbar-custom .navbar-text {
+            color: #232323;
+        }
+  </style>
+
+	<style>
+		table.scrolldown {
+			width: 100%;
+
+			/* border-collapse: collapse; */
+			border-spacing: 0;
+		}
+
+		/* To display the block as level element */
+		table.scrolldown tbody,
+		table.scrolldown thead {
+			display: block;
+		}
+
+		thead tr th {
+			height: 30px;
+		
+		}
+
+		table.scrolldown tbody {
+
+			/* Set the height of table body */
+			max-height: 150px;
+
+			/* Set vertical scroll */
+			overflow-y: auto;
+
+			/* Hide the horizontal scroll */
+			overflow-x: hidden;
+		}
+
+    thead {
+      width:100%;
+    }
+		tbody {
+			border-top: 2px solid grey;
+      width: 100%;
+		}
+
+		.col1{
+			width: 80%;  
+      min-width: 200px;
+      text-align:left;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+		}
+    .col2{
+			width: 20%;
+      text-align:left;
+		}
+    
+     .col3{
+			width: 80px;
+      text-align:left;
+		}
+
+    table tr td, table tr th{
+      background-color: #eeeeee !important;
+    }
+    .info-card{
+      width: 30em
+    }
+
+    .find-projects-stack {
+      width: 100%;
+    }
+    
+	</style>
+
+<!-- Add a eventlistner which changes structure of page if pixels < 500-->
+
+  </head>
+
+
+
+  <body style=" background-color: #eeeeee; " >
+
+    <!-- Navbar-->
+    <nav class="navbar navbar-custom navbar-expand-lg shadow">
+      <div class="container-fluid">
+          <a class="navbar-brand" href="#">
+            <img src="/static/favicon/apple-touch-icon.png" alt="Logo" width="30" height="24" class="d-inline-block align-text-top">
+            CASphere
+          </a>
+          <!-- Collapsing btn-->
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+          </button>
+          <!-- Navbar elements -->
+          <div class="collapse navbar-collapse" id="navbarSupportedContent">
+
+            <li class="nav-item">
+              <a class="nav-link active" aria-current="page" href="#">Home</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="#">Link</a>
+            </li>
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                User
+              </a>
+              <ul class="dropdown-menu">
+                <li><a class="dropdown-item" href="#">Action</a></li>
+                <li><a class="dropdown-item" href="#">Another action</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item" href="#">Something else here</a></li>
+              </ul>
+            </li>
+          </div>
+        </nav>
+
+
+<div style="max-width: 1500px; width: 100%">
+   <div class="d-flex justify-content-evenly" >
+    <!-- Body start -->
+    <!-- Search bar -->
+    <div class="find-projects-stack">
+      <form class="row g-3 w-100 justify-content-center m-2">
+        <div class="col-auto">
+          <label for="staticEmail2" class="visually-hidden">Email</label>
+          <input type="text" readonly class="form-control-plaintext" id="staticEmail2" value="email@example.com">
+        </div>
+        <div class="col-auto">
+          <label for="inputPassword2" class="visually-hidden">Password</label>
+          <input type="password" class="form-control" id="inputPassword2" placeholder="Password">
+        </div>
+      <div class="col-auto">
+        <button type="submit" class="btn btn-primary mb-3">Confirm identity</button>
+      </div>
+    </form>
+  
+    <div class="card my-3 mx-3 info-card" style="background-color: #eeeeee;">
+      <div class="card-body overflow-x-auto">
+
+        <h5 class="card-title">proj</h5>
+      </div>
+      </div>  
+    </div>
+
+
+    <!-- Info Card -->
+    <div class="card my-3 mx-3 info-card" style="background-color: #eeeeee;">
+      <div class="card-body overflow-x-auto">
+
+        <h5 class="card-title">Welcome {%Name%}</h5>
+        <svg width="50%" height="15px" xmlns="http://www.w3.org/2000/svg">
+          <rect width="100%" height="100%" x="-10" y="-10" fill="#8f61b0" />
+        </svg> 
+        
+        <table class="table table-sm caption-top table-hover scrolldown">
+          <!-- <caption>Your projects</caption> -->
+          <thead>
+            <tr >
+              <th class="col1">Your Projects </th>
+              <th class="col2">Date</th>
+              <th class="col3">Info</th>
+            </tr>
+          </thead>
+   
+          <tbody id="ownedProjectsTable">
+            <tr>
+              <td class="col1">Long Project Name</td>
+              <td class="col2">Mark</td>
+              <td class="col3">Otto</td>
+            </tr>
+       
+            <tr>
+              <td class="col1">Proj Name</td>
+              <td class="col2">Mark</td>
+              <td class="col3">Otto</td>
+            </tr>
+            <tr>
+              <td>1</td>
+              <td>Mark</td>
+              <td>Otto</td>
+            </tr>
+                        <tr>
+              <td>1</td>
+              <td>Mark</td>
+              <td>Otto</td>
+            </tr>
+            <tr>
+              <td>1</td>
+              <td>Mark</td>
+              <td>Otto</td>
+            </tr>
+            
+          </tbody>
+        </table>
+        <table class="table table-sm caption-top table-hover scrolldown">
+          <!-- <caption>Participating in</caption> -->
+          <thead>
+            <tr>
+              <th class="col1">Participating in Project</th>
+              <th class="col2">Date</th>
+              <th class="col3">Info</th>
+            </tr>
+          </thead>
+          <tbody id="paricipatingProjectsTable">
+            
+            <tr>
+              <td class="col1">Long Project Name</td>
+              <td class="col2">Mark</td>
+              <td class="col3">Otto</td>
+            </tr>
+       
+            <tr>
+              <td class="col1">Proj Name</td>
+              <td class="col2">Mark</td>
+              <td class="col3">Otto</td>
+            </tr>
+        </table>
+        
+      </div>
+    </div>
+
+
+
+    
+ <!-- Body end-->
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+
+  </body>
+</html>
+

@@ -1,17 +1,19 @@
-from casphere import app
-import pandas as pd
-import requests
-import json
-from flask import Flask, redirect, request, session, render_template, jsonify, url_for
-import os
+
+from flask import redirect, request, session, render_template, jsonify, Blueprint
 import requests
 from google.oauth2 import id_token
 from google.auth.transport import requests
+from ..globalConfig import *
+from ..core.SQL import executeQuery
+
 # Error codes: https://www.w3.org/Protocols/HTTP/HTRESP.html
 
-# Google OAuth Secrets
-CLIENT_ID = '300028427783-2mnga77mhs3dcrl36rmsk8to8bc9dk0v.apps.googleusercontent.com'
-CLIENT_SECRET = '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'
+# Defining a blueprint
+login_bp = Blueprint(
+    'login_bp', __name__,
+    template_folder='templates',
+    static_folder='static', static_url_path='/login/static'
+)
 
 # Helper functions
 def decode_jwt(token):
@@ -25,23 +27,15 @@ def decode_jwt(token):
 
 # - Server Calls - 
 
-@app.route("/", methods=['GET'])
+@login_bp.route("/", methods=['GET'])
 def main():                              
     return redirect("/login")
 
-@app.route("/home", methods=['GET'])
-def home():          
-    if "loggedIn" in session:              
-        return render_template("home.html",
-                               name = session["fullName"]
-                               )
-    return redirect("/login")
-
-@app.route("/login", methods=['GET'])
+@login_bp.route("/login", methods=['GET'])
 def login():
     return render_template("login.html")
 
-@app.route("/login/callback", methods=['POST'])
+@login_bp.route("/login/callback", methods=['POST'])
 def loginCallback():
     authToken = request.json["authToken"]
     userInfo = decode_jwt(authToken)
@@ -59,11 +53,9 @@ def loginCallback():
         return jsonify({'status':200}) #Return succes
     return jsonify({'status':401}) #Return Not authorized
 
-@app.route("/logout", methods=['GET'])
+@login_bp.route("/logout", methods=['GET'])
 def logout():
     return render_template("login.html")
 
 
 
-if __name__ == "__main__":
-    app.run(ssl_context="adhoc")

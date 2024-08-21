@@ -1,23 +1,26 @@
 from flask import redirect, request, session, render_template, jsonify, Blueprint
 from ..globalConfig import *
-from ..core.SQL import executeQuery
 from .projectRetrieval import *
-
+from ..core.sessions import *
 
 home_bp = Blueprint(
     'home_bp', __name__,
     template_folder='templates',
-    static_folder='static'
+    static_folder='static', static_url_path='/home/static'
 )
 
 # - Server Calls - 
 @home_bp.route("/home", methods=['GET'])
 def home():          
-    if "loggedIn" in session:              
-        return render_template("home.html",
-                               name = session["fullName"]
-                               )
+    if ("KEY" in session):
+        userDetails = getUserInfoFromSessionKey(session['KEY'])
+        if userDetails:              
+            return render_template("home2.html",
+                                name = userDetails["fullName"],
+                                userObject = userDetails
+                                )  
     return redirect("/login")
+
 
 #Data calls
 @home_bp.route("/getProjects", methods=['POST'])
@@ -29,7 +32,7 @@ def getProjects():
     randomSeed = requestObj.randomSeed #
     after = requestObj.after #
 
-    queryResponse = [[],[]] #executeQuery("")
+    queryResponse = [[],[]] 
     projectsArr = []
     for project in queryResponse:
         projectsArr.append()

@@ -1,4 +1,6 @@
+
 import mysql.connector
+#from ..globalConfig import *
 
 globalDbConnectionPool = mysql.connector.pooling.MySQLConnectionPool(
     pool_name = "CASpherePool",
@@ -19,7 +21,9 @@ def replaceStringChars(str):
     
 def filterValues(values):
     try:
-        if (type(values) is list):
+        # I had initially assumed that the values could be passed as a multi dimensional arr to avoid writing multiple %s's
+        # However that is not the case, instead it is a flattened arr where each idx corresponds with one %s and thus this IF statement is never true
+        if (type(values) is list): 
             for i in range(len(values)):
                 values[i] = filterValues(values[i])
             return values
@@ -35,12 +39,24 @@ def filterValues(values):
         return None
 
 def executeQuery(query, values = None, connection = None):
-    if (connection == None):
-        connection = globalDbConnectionPool.get_connection()
-    cursor = connection.cursor()
-    filteredValues = filterValues(values)
-    response = cursor.execute(query, filteredValues)
-    
-    print(response)
-
-#executeQuery("SELECT * FROM users")
+    try:
+        commitQuery = False
+        if (connection == None):
+            connection = globalDbConnectionPool.get_connection()
+            commitQuery = True
+        cursor = connection.cursor()
+        filteredValues = filterValues(values)
+        #print("\n")
+        #print(query)
+        #print(filteredValues)
+        #print("\n")
+        cursor.execute(query, filteredValues)
+        response = cursor.fetchall()
+        primaryKey = cursor.lastrowid
+        if commitQuery:
+            connection.commit()
+        connection.close()
+        return {'data':response, 'dbKey':primaryKey}
+    except:
+        return None
+#print(executeQuery("SELECT * FROM users WHERE first_name = %s", ['Bob']))

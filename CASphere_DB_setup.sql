@@ -2,7 +2,7 @@ CREATE TABLE `users` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
   `first_name` char(255) not null,
   `last_name` char(255) not null,
-  `year_group` char(255) not null,
+  `year_group` char(255) default null,
   `email` char(255) not null,
   `access_level` enum('admin','student') not null,
   PRIMARY KEY (`id`)
@@ -41,4 +41,12 @@ CREATE TABLE `projects_particpants` (
   `project_id` bigint unsigned NOT NULL,
   `user_id` bigint unsigned NOT NULL,
   PRIMARY KEY (`id`)
+);
+
+CREATE TABLE `active_sessions` (
+  `unique_key` char(128) NOT NULL,
+  `user_id` bigint unsigned NOT NULL,
+  `start_date` datetime NOT NULL,
+  `expire_date` datetime NOT NULL,
+  PRIMARY KEY (`unique_key`)
 );

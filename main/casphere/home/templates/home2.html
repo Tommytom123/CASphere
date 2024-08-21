@@ -1,0 +1,146 @@
+{% extends "layout.html" %}
+{% set current_page = "Home" %}
+
+{% block jsImports %}
+<script src="/home/static/coreJS.js"></script>
+{% endblock %}
+
+{% block body %}
+<div class="find-projects-stack ms-3 " style="max-width: 1000px;">
+    <div id="searchProjectsHeader">
+      <form class="row g-3 w-100 justify-content-center m-2">
+        <div class="col-auto">
+          <span class="search-proj-text">Ongoing</br>Projects</span>
+        </div>
+        <div class="col-auto">
+          Search Projects
+        </div>
+        <div class="col-auto">
+          Filter 
+        </div>
+        <div class="col-auto">
+          <button type="submit" class="btn btn-primary mb-3">Search</button>
+        </div>
+      </form>
+      <hr>
+    </div>
+    
+    <div id="projectsCardCol" class="d-flex flex-column align-items-center" style="max-height: 500px; overflow: auto;">
+      <!-- Auto populated, now using placeholder contents--> 
+      <div class="card project-card" aria-hidden="true">
+        <img src="..." class="card-img-top" alt="...">
+        <div class="card-body">
+          <h5 class="card-title placeholder-glow">
+            <span class="placeholder col-6"></span>
+          </h5>
+          <p class="card-text placeholder-glow">
+            <span class="placeholder col-7"></span>
+            <span class="placeholder col-4"></span>
+            <span class="placeholder col-4"></span>
+            <span class="placeholder col-6"></span>
+            <span class="placeholder col-8"></span>
+          </p>
+          <a class="btn btn-primary disabled placeholder col-6" aria-disabled="true"></a>
+        </div>
+      </div>
+      <!-- Loading icon when bottom reached -->
+      <div class="spinner-border m-4" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+    </div>
+      
+      
+      
+      <!--End placeholders--> 
+    </div>
+
+
+
+
+  <!-- Info Card + add proj stack -->
+   <div> 
+      <button type="button" class="info-card-btn-width add-proj-btn btn py-3 mt-3 mx-3">
+        <span style="font-size: 30px;">ADD PROJECT</span>
+      </button>
+      <div class="card my-3 mx-3 info-card-btn-width" style="background-color: #fEfEfE;">
+        <div class="card-body overflow-x-auto">
+
+          <span class="card-title welcome-text">Welcome, {{ name }}</span>
+          <br>
+          <svg width="50%" height="15px" xmlns="http://www.w3.org/2000/svg">
+            <rect width="100%" height="100%" x="-10" y="-10" fill="#8f61b0" />
+          </svg> 
+          
+          <table class="table table-sm caption-top table-hover scrolldown ">
+            <!-- <caption>Your projects</caption> -->
+            <thead>
+              <tr >
+                <th class="col1">Your Projects </th>
+                <th class="col2">Date</th>
+                <th class="col3">Info</th>
+              </tr>
+            </thead>
+
+            <tbody class="hide-scrollbar" id="ownedProjectsTable">
+              <tr>
+                <td class="col1">Project</td>
+                <td class="col2">21-5-1999</td>
+                <td class="col3"><a href="google.com">Info</a></td>
+              </tr>
+        
+              <tr>
+                <td class="col1">Long Project Name</td>
+                <td class="col2">21-5-1999</td>
+                <td class="col3"><a href="google.com">Info</a></td>
+              </tr>
+              <tr>
+                <td class="col1">Long Project Name</td>
+                <td class="col2">21-5-1999</td>
+                <td class="col3"><a href="google.com">Info</a></td>
+              </tr>
+              <tr>
+                <td class="col1">Long Project Name</td>
+                <td class="col2">21-5-1999</td>
+                <td class="col3"><a href="google.com">Info</a></td>
+              </tr>
+              <tr>
+                <td class="col1">Long Project Name</td>
+                <td class="col2">21-5-1999</td>
+                <td class="col3"><a href="google.com">Info</a></td>
+              </tr>
+              
+            </tbody>
+          </table>
+          <table class="table table-sm caption-top table-hover scrolldown">
+            <!-- <caption>Participating in</caption> -->
+            <thead>
+              <tr>
+                <th class="col1">Participating in Project</th>
+                <th class="col2">Date</th>
+                <th class="col3">Info</th>
+              </tr>
+            </thead>
+            <tbody id="paricipatingProjectsTable">
+              
+              <tr>
+                <td class="col1">Project</td>
+                <td class="col2">21-5-1999</td>
+                <td class="col3"><a href="google.com">Info</a></td>
+              </tr>
+        
+              <tr>
+                <td class="col1">Long Project Name</td>
+                <td class="col2">21-5-1999</td>
+                <td class="col3"><a href="google.com">Info</a></td>
+              </tr>
+              <tr>
+                <td class="col1">Long Project Name</td>
+                <td class="col2">21-5-1999</td>
+                <td class="col3"><a href="google.com">Info</a></td>
+              </tr>
+          </table>
+          
+        </div>
+      </div>
+      </div>
+{% endblock %}

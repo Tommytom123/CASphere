@@ -1,7 +1,9 @@
 from flask import redirect, request, session, render_template, jsonify, Blueprint
 from ..globalConfig import *
-from .projectRetrieval import *
+from .project import *
 from ..core.sessions import *
+
+#https://flask.palletsprojects.com/en/3.0.x/errorhandling/
 
 home_bp = Blueprint(
     'home_bp', __name__,
@@ -15,27 +17,30 @@ def home():
     if ("KEY" in session):
         userDetails = getUserInfoFromSessionKey(session['KEY'])
         if userDetails:              
-            return render_template("home2.html",
-                                name = userDetails["fullName"],
-                                userObject = userDetails
+            return render_template("home.html",
+                                name = userDetails["fullName"]
                                 )  
     return redirect("/login")
 
-
 #Data calls
+@home_bp.route("/getUserObj", methods=['POST'])
+def getUserObjReq():
+    userObj = getUserInfoFromSessionKey(session["KEY"])
+    return userObj, None if not userObj else 200
+
+@home_bp.route("/assignYearGroup", methods=['POST'])
+def assignYearGroupReq():
+    responseCode = assignYearGroupFromSessionKey(session["KEY"], request.json['newYearGroup'])
+    return {'action':'assignYearGroup'}, responseCode
+
+@home_bp.route("/submitProject", methods=['POST'])
+def submitProjectReq():
+    responseCode = submitProject(session["KEY"], request.form, request.files)
+    return {'action':'submitProject'}, responseCode
+
+
 @home_bp.route("/getProjects", methods=['POST'])
-def getProjects():
-    requestObj = request.json
-    response = {'status':401}
-    
-    batchSize = 20 if requestObj.batchSize >= 20 else requestObj.batchSize # Max of 20 project can be called at once
-    randomSeed = requestObj.randomSeed #
-    after = requestObj.after #
-
-    queryResponse = [[],[]] 
-    projectsArr = []
-    for project in queryResponse:
-        projectsArr.append()
-
-    return jsonify(response)
+def getProjectsReq():
+    projectObjs = getProjects(**request.json)
+    return {'projects':projectObjs}, 200
 

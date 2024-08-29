@@ -2,13 +2,15 @@
 import mysql.connector
 #from ..globalConfig import *
 
+#https://dev.mysql.com/doc/connector-python/en/connector-python-connectargs.html
 globalDbConnectionPool = mysql.connector.pooling.MySQLConnectionPool(
     pool_name = "CASpherePool",
     pool_size = 8,
     host="localhost",
     user="root",
     password="root",
-    database="casphere"
+    database="casphere"#,
+    #raw=True
 )
 
 # Filter to remove all HTML or other characters that could break the frontend rendering
@@ -46,10 +48,6 @@ def executeQuery(query, values = None, connection = None):
             commitQuery = True
         cursor = connection.cursor()
         filteredValues = filterValues(values)
-        #print("\n")
-        #print(query)
-        #print(filteredValues)
-        #print("\n")
         cursor.execute(query, filteredValues)
         response = cursor.fetchall()
         primaryKey = cursor.lastrowid
@@ -57,6 +55,9 @@ def executeQuery(query, values = None, connection = None):
             connection.commit()
         connection.close()
         return {'data':response, 'dbKey':primaryKey}
-    except:
-        return None
+    except Exception as err:
+        print(err)
+        print(query)
+        print(filteredValues)
+        return {'data':None, 'dbKey':None, 'error':True}
 #print(executeQuery("SELECT * FROM users WHERE first_name = %s", ['Bob']))

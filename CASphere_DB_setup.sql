@@ -15,17 +15,21 @@ CREATE TABLE `schools` (
   PRIMARY KEY (`id`)
 );
 
+drop table `projects`;
+
 CREATE TABLE `projects` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
   `title` char(255) not null,
+  `strand` enum('Creativity','Activity','Service'),
   `description` text NOT NULL,
   `uploaded_date` DATETIME NOT NULL,
   `date_start` DATE NOT NULL,
-  /*`date_end` DATETIME NOT NULL,*/
-  `location_JSON` text not null, /*Stored AS JSON?*/
+  `date_end` DATETIME NOT NULL,
+  `location` char(128) NOT NULL, /*Stored AS JSON?*/
   `max_participant_count` char(255) not null,
-  `years` set('ALL','Y9','Y10','Y11','Y12','Y13') not NULL,
-
+  `years` set('Y9','Y10','Y11','Y12','Y13') not NULL,
+  `approved_by_id` bigint unsigned default null,
+  `owner_id` bigint unsigned NOT null,
   PRIMARY KEY (`id`)
 );
 

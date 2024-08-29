@@ -11,3 +11,12 @@ CLIENT_SECRET = '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'
 
 #Session details
 SESSION_LIFETIME = 48 #In Hours
+
+#
+
+# -- Hardcoded on the frontend
+
+#DB params
+ALLOWED_YEAR_GROUPS = ["Y9","Y10","Y11","Y12","Y13"]
+
+

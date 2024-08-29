@@ -35,8 +35,7 @@ def createSession(userID, oldKey = None, recallError = False):
 
 def getUserInfoFromSessionKey(sessionKey):
     dbResponse = executeQuery("SELECT u.id, concat(u.first_name, ' ',u.last_name) as full_name, u.email, u.year_group, u.access_level FROM active_sessions AS acts LEFT JOIN users AS u ON u.id = acts.user_id WHERE acts.expire_date > NOW() AND acts.unique_key = %s", [sessionKey])
-    print(dbResponse)
-    if not dbResponse['data']:
+    if not dbResponse['data']: # Is list empty
         return None
     return {
         'userId':dbResponse['data'][0][0],
@@ -46,19 +45,28 @@ def getUserInfoFromSessionKey(sessionKey):
         'accessLevel':dbResponse['data'][0][4]
     }
 
+def sessionExists(sessionKey): # Finish
+    return True
+
+def assignYearGroupFromSessionKey(sessionKey, year):
+    if (sessionExists(sessionKey)):
+        try:
+            if year in ALLOWED_YEAR_GROUPS:
+                dbResponse = executeQuery("UPDATE users AS u LEFT JOIN active_sessions AS acts on acts.user_id = u.id set u.year_group = %s where acts.unique_key = %s", [year, sessionKey])
+            return 200
+        except:
+            return  500
+    return 401
 
 def getUserId(**kwargs):
     userEmail = kwargs['googleAccObj']['email']
-    print(userEmail)
     dbResponse = executeQuery("SELECT id FROM users WHERE email = %s", [userEmail])
-    print(dbResponse)
     try:
         return dbResponse['data'][0][0]
     except:
         None
 
 def createUser(googleAccObj):
-    print(googleAccObj)
     userArr = [
         googleAccObj['given_name'],
         googleAccObj['family_name'],
@@ -68,7 +76,6 @@ def createUser(googleAccObj):
     ]
     try:
         dbResponse = executeQuery("INSERT INTO users (first_name, last_name, year_group, email, access_level) VALUES (%s,%s,%s,%s,%s)", userArr)
-        print(dbResponse)
         return dbResponse['dbKey']
     except Exception as err:
         print(err)

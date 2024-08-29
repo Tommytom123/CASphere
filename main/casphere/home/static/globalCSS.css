@@ -1,109 +1,256 @@
 html, body {
-    height: 100%;
+  height: 100%;
 }
 
 .navbar-custom {
-  background-color: #fefefe;
+background-color: #fefefe;
 }
 
 .navbar-custom .navbar-brand,
 .navbar-custom .navbar-text {
-      color: #232323;
-  }
+    color: #232323;
+}
 
 table.scrolldown {
-    width: 100%;
-
-    /* border-collapse: collapse; */
-    border-spacing: 0;
+  width: 100%;
+  /* border-collapse: collapse; */
+  border-spacing: 0;
 }
 
 /* To display the block as level element */
 table.scrolldown tbody,
 table.scrolldown thead {
-    display: block;
+  display: block;
 }
 
 thead tr th {
-    height: 30px;
+  height: 30px;
 
 }
 
 table.scrolldown tbody {
 
-    /* Set the height of table body */
-    max-height: 150px;
-
-    /* Set vertical scroll */
-    overflow-y: auto;
-
-    /* Hide the horizontal scroll */
-    overflow-x: hidden;
+  /* Set the height of table body */
+  max-height: 150px;
+  /* Set vertical scroll */
+  overflow-y: auto;
+  /* Hide the horizontal scroll */
+  overflow-x: hidden;
 }
 
 thead {
-  width:100%;
+width:100%;
 }
-    tbody {
-        border-top: 2px solid grey;
-  width: 100%;
-    }
+  tbody {
+      border-top: 2px solid grey;
+width: 100%;
+  }
 
-    .col1{
-        width: 75%;  
-  min-width: 200px;
-  text-align:left;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-    }
+  .col1{
+      width: 75%;  
+min-width: 200px;
+text-align:left;
+white-space: nowrap;
+overflow: hidden;
+text-overflow: ellipsis;
+  }
 .col2{
-        width: 20%;
-  text-align:left;
-    }
+      width: 20%;
+text-align:left;
+  }
 
- .col3{
-        width: 80px;
-  text-align:left;
-    }
+.col3{
+      width: 80px;
+text-align:left;
+  }
 
 table tr td, table tr th{
-  background-color: #fEfEfE !important;
+background-color: #fEfEfE !important;
 }
 .info-card-btn-width{
-  width: 30em
+width: 30em
+}
+
+.search-proj-text {
+font-weight: 1000;
+letter-spacing: 2px;
+line-height: 1.8;
+}
+
+.hide-scrollbar { /*https://stackoverflow.com/questions/16670931/hide-scroll-bar-but-while-still-being-able-to-scroll*/
+overflow-y: scroll;
+scrollbar-width: none; /* Firefox */
+-ms-overflow-style: none;  /* Internet Explorer 10+ */
+}
+
+.hide-scrollbar::-webkit-scrollbar { 
+width: 0;
+height: 0;
+}
+
+.welcome-text {
+font-weight: 700 !important;
+font-size: 30px !important; 
+}
+.add-proj-btn {
+--bs-btn-bg: #3E76A1;
+--bs-btn-hover-bg: #185489;
+border-color: #000000;
+border-width: 2px;
+}
+
+/* Add Form */
+.cas-type-btn {
+width: 120px;
+margin-top: 3px;
+margin-bottom: 3px;
+}
+
+.form-input-sm {
+height: auto;
+font-size: 13px;
+}
+
+.participant-input-num{
+max-width: 40px;
+margin-left: 10px;
+}
+
+.participant-input-slider {
+width: 170px;
+}
+
+.date_input {
+width: 170px;
+}
+
+.date-label {
+width: 110px;
+margin-left: 10px;
+}
+
+.read-only-checkbox {
+color: #818181;
+background-color: #818181;
+opacity: 0.5;
+}
+
+.custom-alert {
+min-width: 300px;
+opacity: 0.9;
+transition: opacity 1s;
+}
+.custom-alert-fade  {
+opacity: 0;
+}
+
+
+/* Hiding the arrows from number input: https://www.w3schools.com/howto/howto_css_hide_arrow_number.asp */
+
+/* Chrome, Safari, Edge, Opera */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+-webkit-appearance: none;
+margin: 0;
+z-index: 10;
+}
+
+/* Firefox */
+input[type=number] {
+-moz-appearance: textfield;
+}
+
+/* Project card CSS */
+
+.scroll-top-btn {
+  opacity: 0.78;
+  position: absolute;
+  --bs-btn-bg: #51ade2;
+  --bs-btn-hover-bg: #29738a;
+  top:150px;
+  right: 0;
+  z-index: 11;
+  width: 100px
 }
 
 .find-projects-stack {
   width: 100%;
 }
-
+  
 .project-card {
+  min-width: 400px;
   width: 800px;
 }
 
-.search-proj-text {
-  font-weight: 1000;
-  letter-spacing: 2px;
-  line-height: 1.8;
+.project-card.creativity > * {
+  background: linear-gradient(white, white) padding-box,
+              linear-gradient(0deg, rgba(224,39,39,1) 0%, rgba(143,0,0,1) 100%) border-box;
+  border-radius: 5px;
+  border: 0;
+  border-left: 10px solid transparent;
 }
 
-.hide-scrollbar { /*https://stackoverflow.com/questions/16670931/hide-scroll-bar-but-while-still-being-able-to-scroll*/
-  overflow-y: scroll;
-  scrollbar-width: none; /* Firefox */
-  -ms-overflow-style: none;  /* Internet Explorer 10+ */
+.project-card.activity > * {
+  background: linear-gradient(white, white) padding-box,
+              linear-gradient(0deg, rgba(39,224,106,1) 0%, rgba(69,143,0,1) 100%) border-box;
+  border-radius: 5px;
+  border: 0;
+  border-left: 10px solid transparent;
 }
-.hide-scrollbar::-webkit-scrollbar { 
-  width: 0;
-  height: 0;
+  
+.project-card.service > * {
+  background: linear-gradient(white, white) padding-box,
+              linear-gradient(0deg, rgba(34,193,195,1) 0%, rgba(45,91,253,1) 100%) border-box;
+  border-radius: 5px;
+  border: 0;
+  border-left: 10px solid transparent;
+}
+  
+
+.pin-project {
+color: grey;
 }
 
-.welcome-text {
-  font-weight: 700 !important;
-  font-size: 30px !important; 
+.pin-project:hover {
+color: black;
 }
-.add-proj-btn {
-  --bs-btn-bg: #3E76A1;
-  --bs-btn-hover-bg: #185489;
 
+.project-subheading * {
+font-size:12px;
+margin-top:0px;
+}
+
+.project-subheading > .student-name {
+max-width: 220px;
+overflow: hidden;
+text-overflow: ellipsis;
+white-space: nowrap;
+}
+.project-subheading > .student-email {
+max-width: 200px;
+overflow: hidden;
+text-overflow: ellipsis;
+white-space: nowrap;
+}
+
+.proj-line-break {
+margin-top: 3px;
+margin-bottom: 0px;
+padding-bottom:0px;
+}
+.proj-card-left-content {
+height: 76%;
+display: flex;
+flex-direction: column;
+}
+
+.proj-card-left-footer {
+margin-top: auto;
+font-size:14px;
+}
+
+.proj-admin-btn {
+  width:100px;
+  min-width:100px;
+  max-width:100px;
 }

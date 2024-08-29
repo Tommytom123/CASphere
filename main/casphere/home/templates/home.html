@@ -1,77 +1,25 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>CASphere</title>
-    <!--Bootstrap init-->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
-    <!--Fonts init-->
-    
-    <!-- Menu Icon -->
-    <link rel="apple-touch-icon" sizes="180x180" href="/static/favicon/apple-touch-icon.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="/static/favicon/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="/static/favicon/favicon-16x16.png">
-    <link rel="manifest" href="/static/favicon/site.webmanifest">
-    
-     <!-- move this into seperate file-->
- 
-
-<!-- Add a eventlistner which changes structure of page if pixels < 500-->
-
-  </head>
-  
-  <body style=" background-color: #fAfAfA" >
-
-    <!-- Navbar-->
-    <nav class="navbar navbar-custom navbar-expand-lg shadow">
-      <div class="container-fluid">
-        <a class="navbar-brand" href="#">
-          <img src="/static/favicon/apple-touch-icon.png" alt="Logo" width="30" height="24" class="d-inline-block align-text-top">
-          CASphere
-        </a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-          <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarSupportedContent">
-          <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
-            <li class="nav-item">
-              <a class="nav-link active" aria-current="page" href="#">Home</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="#">Resources</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="#">Admin</a>
-            </li>
-            <li class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                User
-              </a>
-              <ul class="dropdown-menu dropdown-menu-lg-end">
-                <li><a class="dropdown-item disabled" href="#">Logged in as: {{name}}</a></li>
-                <li><hr class="dropdown-divider"></li>
-                <li><a class="dropdown-item" href="/logout">Logout</a></li>
-              </ul>
-            </li>
-
-          </ul>
-
-        </div>
-      </div>
-    </nav>
-
-<div class="d-flex justify-content-center">
-    <!-- Body start -->
-    <!-- Search bar -->
-    <div class="find-projects-stack ms-3 " style="max-width: 1000px;">
-      <div id="searchProjectsHeader">
+{% extends "layout.html" %}
+{% set current_page = "Home" %}
+<!------------------------------------------------------------------------------------------------------>
+{% block imports %}
+<link rel="stylesheet" href="/home/static/globalCSS.css">
+<script src="/home/static/coreJS.js"></script>
+<script src="/home/static/projects.js"></script>
+<script src="/home/static/validators.js"></script>
+<script src="/home/static/otherJS.js"></script>
+{% endblock %}
+<!------------------------------------------------------------------------------------------------------>
+{% block body %}
+<div class="container-fluid" style="max-height: 100vh; overflow-y: hidden;">
+  <div class="row justify-content-md-center">
+    <div class="col-lg-8 d-flex flex-column justify-content-start order-lg-first order-last " style="max-width: 950px;">
+      <div id="searchProjectsHeader" class="position-relative">
         <form class="row g-3 w-100 justify-content-center m-2">
           <div class="col-auto">
             <span class="search-proj-text">Ongoing</br>Projects</span>
           </div>
           <div class="col-auto">
-          Search Projects
+            Search Projects
           </div>
           <div class="col-auto">
             Filter 
@@ -81,43 +29,20 @@
           </div>
         </form>
         <hr>
+        <button id="scrollToTopBtn" class="btn scroll-top-btn translate-middle">
+          Back to start <i class="fa-solid fa-up-long"></i>
+        </button>
       </div>
-      
-      <div id="projectsCardCol" class="d-flex flex-column align-items-center" style="max-height: 500px; overflow: auto;">
-        <!-- Auto populated, now using placeholder contents--> 
-        <div class="card project-card" aria-hidden="true">
-          <img src="..." class="card-img-top" alt="...">
-          <div class="card-body">
-            <h5 class="card-title placeholder-glow">
-              <span class="placeholder col-6"></span>
-            </h5>
-            <p class="card-text placeholder-glow">
-              <span class="placeholder col-7"></span>
-              <span class="placeholder col-4"></span>
-              <span class="placeholder col-4"></span>
-              <span class="placeholder col-6"></span>
-              <span class="placeholder col-8"></span>
-            </p>
-            <a class="btn btn-primary disabled placeholder col-6" aria-disabled="true"></a>
-          </div>
-        </div>
-        <!-- Loading icon when bottom reached -->
-        <div class="spinner-border m-4" role="status">
-          <span class="visually-hidden">Loading...</span>
-        </div>
+
+      <div id="projectStackContainer" class="d-flex flex-column align-items-center hide-scrollbar" style="max-height: 84vh; overflow-y: scroll;">
+
       </div>
-        
-        
-        
-        <!--End placeholders--> 
-      </div>
- 
 
-
-
-    <!-- Info Card + add proj stack -->
-     <div> 
-        <button type="button" class="info-card-btn-width add-proj-btn btn py-3 mt-3 mx-3">
+    </div>
+    <div class="col-lg-4 d-flex flex-column justify-content-start order-lg-last order-first">
+      <!-- Info Card + add proj stack -->
+      <div> 
+        <button type="button" class="info-card-btn-width add-proj-btn btn py-3 mt-3 mx-3" onclick="addProjectShowForm()">
           <span style="font-size: 30px;">ADD PROJECT</span>
         </button>
         <div class="card my-3 mx-3 info-card-btn-width" style="background-color: #fEfEfE;">
@@ -200,20 +125,212 @@
             
           </div>
         </div>
-        </div>
+      </div>
 
-
-      
-
- <!-- Body end-->
     </div>
+  </div>
+</div>
+{% endblock %}
+<!------------------------------------------------------------------------------------------------------>
+{% block popups %}
 
-     <!--Footer-->
-    <div class="d-flex  position-absolute bottom-0 w-100 justify-content-center py-2">
-      @CASphere | 2024
+<!-- Modal | Select year -->
+<div class="modal fade" id="selectYearModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="selectYearModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="selectYearModalLabel">Select year group</h5>
+      </div>
+      <div class="modal-body">
+       
+        <select class="form-select" id="selectedYearDropdown">
+          <option value="" disabled selected>Select Year Group</option>
+          <option value="Y9">Y9</option>
+          <option value="Y10">Y10</option>
+          <option value="Y11">Y11</option>
+        </select>
+
+      </div>
+      <div class="modal-footer">
+        <button id="selectedYearCloseBtn" type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary" onclick="onYearSelectConfirm()">Confirm</button>
+      </div>
     </div>
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+  </div>
+</div>
 
-  </body>
-</html>
+<!-- Modal | Add project -->
+<div class="modal fade" id="addProjectModal" data-bs-keyboard="false" tabindex="-1" aria-labelledby="addProjectModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="addProjectModalLabel">Add Project</h5>
+      </div>
+      <div class="modal-body">
+       
+        <form id="addProjectForm">
+          <div class="container">
+
+            <div class="row">
+              <div class="col">
+                <!--Title-->
+                <div class="form-group">
+                  <label for="addProjectTitle">Project title</label>
+                  <input class="form-control" id="addProjectTitle" name="addProjectTitle" placeholder="" required>
+                  <div class="invalid-feedback">Your project must have a title</div>
+                </div>
+              </div>
+            </div>
+            <div class="row mt-2">
+              <div class="col">
+                <!--Description-->
+                <div class="form-group">
+                  <label for="addProjectDescription">Project description</label>
+                  <textarea class="form-control" id="addProjectDescription" name="addProjectDescription" rows="3" required></textarea>
+                  <div class="invalid-feedback">Your project must have a description</div>
+                </div>
+              </div>
+            </div>
+            <hr><!---->
+              <!-- YearGroup selection & Strand Selection-->
+            <div class="row mt-3">
+              <div class="col">
+                <div class="custom-control custom-checkbox ">
+                  <input type="checkbox" class="custom-control-input" id="yearGroupCheckbox_1" name="yearGroupCheckbox_1">
+                  <label class="custom-control-label" for="yearGroupCheckbox_1">Y9</label>
+                </div>
+              </div>
+              <div class="col">
+                <div class="custom-control custom-checkbox ">
+                  <input type="checkbox" class="custom-control-input" id="yearGroupCheckbox_2" name="yearGroupCheckbox_2">
+                  <label class="custom-control-label" for="yearGroupCheckbox_2">Y10</label>
+                </div>
+              </div>
+
+              <div class="col">
+                <input type="radio" class="btn-check" name="strandRadio" id="strandRadioCreativity" autocomplete="off" value="Creativity" checked>
+                <label class="btn btn-outline-danger btn-sm cas-type-btn" for="strandRadioCreativity">Creativity</label>              
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col">
+                <div class="custom-control custom-checkbox ">
+                  <input type="checkbox" class="custom-control-input" id="yearGroupCheckbox_3" name="yearGroupCheckbox_3">
+                  <label class="custom-control-label" for="yearGroupCheckbox_3">Y11</label>
+                </div>
+              </div>
+              <div class="col">
+                <div class="custom-control custom-checkbox ">
+                  <input type="checkbox" class="custom-control-input" id="yearGroupCheckbox_4" name="yearGroupCheckbox_4">
+                  <label class="custom-control-label" for="yearGroupCheckbox_4">Y12</label>
+                </div>
+              </div>
+
+              <div class="col">
+                <input type="radio" class="btn-check" name="strandRadio" id="strandRadioActivity" autocomplete="off" value="Activity">
+                <label class="btn btn-outline-success btn-sm cas-type-btn" for="strandRadioActivity">Activity</label>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col">
+                <div class="custom-control custom-checkbox ">
+                  <input type="checkbox" class="custom-control-input" id="yearGroupCheckbox_5" name="yearGroupCheckbox_5">
+                  <label class="custom-control-label" for="yearGroupCheckbox_5">Y13</label>
+                </div>
+              </div>
+              <div class="col">
+                <div class="custom-control custom-checkbox ">
+                  <input type="checkbox" class="custom-control-input" id="yearGroupCheckbox_All" onclick="allYearGroupAddOnClick(this.checked)">
+                  <label class="custom-control-label" for="yearGroupCheckbox_All">ALL</label>
+                </div>
+              </div>
+
+              <div class="col">
+                <input type="radio" class="btn-check" name="strandRadio" id="strandRadioService" autocomplete="off" value="Service">
+                <label class="btn btn-outline-primary btn-sm cas-type-btn" for="strandRadioService">Service</label>
+              </div>
+            </div>
+
+            
+            <hr><!---->
+
+            <div class="row mt-2 mb-4">
+              
+              <!-- Open spots -->
+              <div class="col">
+                <div class="d-flex mt-1">
+                  <label id="maxParticipantsSliderLabel" for="maxParticipantsSlider" class="form-label">Max participants: </label>
+                  <input type="number" class="form-control form-control-sm form-input-sm participant-input-num" min="1" max="50" step="1" value="1" id="maxParticipantsInput" name="maxParticipantsInput">
+                </div>
+                <input type="range" class="form-range participant-input-slider mt-2" min="1" max="50" step="1" value="1" id="maxParticipantsSlider">
+                
+              </div>
+              <div class="col-7">
+                <div class="row mt-1">
+                  <div class="col d-flex">
+                      <label for="addProjectStartDate" class="form-label date-label">Start date:</label>
+                      <input type="date" id="addProjectStartDate" name="addProjectStartDate" class="form-control form-input-sm date_input" value="2018-07-22" min="2018-01-01" max="2018-12-31" />
+                  </div>
+                </div>
+                <div class="row mt-2">
+                  <div class="col d-flex">
+                    <label for="addProjectEndDate" class="form-label date-label">End date:</label>
+                    <input type="date" id="addProjectEndDate" name="addProjectEndDate" class="form-control form-input-sm date_input" value="2018-07-22" min="2018-01-01" max="2018-12-31" />
+                  </div>
+                </div>
+              </div>
+              <!-- Image Upload and Location -->
+              <div class="row mt-2 mb-4">
+                <div class="col">
+                  <label for="addProjectLocation" class="form-label">Project Location</label>
+                  <select class="form-select form-select-sm" id="addProjectLocation" name="addProjectLocation">
+                    <option value="inSchool">In School</option>
+                    <option value="outSchool">Out of School</option>
+                  </select>
+                </div>
+                <div class="col-7">
+                  <label for="addProjectImageUpload" class="form-label">Upload Image:</label>
+                  <input type="file" class="form-control form-control-sm" id="addProjectImageUpload" name="addProjectImageUpload" accept=".jpg, .jpeg, .png">
+                </div>
+                
+              </div>
+
+            </div>
+        
+
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-primary">Add</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Tooltip -->
+
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+  <div id="customToast" class="toast hide" role="alert" aria-live="assertive" aria-atomic="true">
+    <div class="toast-header">
+      <i class="fa-solid fa-triangle-exclamation"></i>
+      <strong id="customToastTitle" class="me-auto"></strong>
+      <small>---</small>
+      <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+    </div>
+    <div id="customToastBody" class="toast-body">
+    </div>
+  </div>
+</div>
+
+<!-- Alert -->
+<div id="alertContainer" class="position-fixed top-0 start-50" style="z-index: 11; margin-top:30px;">
+
+</div>
+
+
+{% endblock %}
 

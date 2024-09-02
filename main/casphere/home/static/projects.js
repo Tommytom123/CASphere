@@ -9,6 +9,8 @@ class Project {
 
     loadHTML(admin = false){
         this.projectDiv.classList.add("card", "project-card", "mt-2", "mb-2", this.projectDetails.strand.toLowerCase())
+        var joinOrApproveDelBtn = admin ? '<div class="d-flex justify-content-between"> <button type="button" class="btn btn-danger ms-2 proj-admin-btn proj-delete-btn">Delete</button> <button name="${this.projectDetails.id}-approve-btn" type="button" class="btn btn-primary me-2 proj-admin-btn proj-approve-btn">Approve</button></div>' : '<button name="${this.projectDetails.id}-join-btn" type="button" class="btn btn-primary w-100 proj-join-btn">Join Project</button>'
+        
         this.projectDiv.innerHTML = `
             <div class="card-body container">
                 <div class="row">
@@ -16,7 +18,7 @@ class Project {
                     <h5 class="card-title">
                     <div class="d-flex justify-content-between project-heading mb-1">
                         <span class="">${this.projectDetails.title}</span>
-                        <i class="fa-solid fa-thumbtack pin-project"></i>
+                        <i class="fa-solid fa-thumbtack proj-pin-btn"></i>
                     </div>
                     
                     <hr class="proj-line-break">
@@ -43,11 +45,21 @@ class Project {
                         Start date: ${this.projectDetails.startDate} <br>
                         End date: ${this.projectDetails.endDate}
                     </p>
-                    ${admin ? '<div class="d-flex justify-content-between"> <button type="button" class="btn btn-danger ms-2 proj-admin-btn">Approve</button> <button type="button" class="btn btn-primary me-2 proj-admin-btn">Delete</button></div>' : '<button type="button" class="btn btn-primary w-100">Join Project</button>'}
+                    ${joinOrApproveDelBtn}
                 </div>
                 </div>
             </div>
             `
+            // Setting up eventlistners
+            this.projectDiv.getElementsByClassName(`proj-pin-btn`)[0].addEventListener("click", ()=>{console.log(`Pin: ${this.projectDetails.title}, ${this.projectDetails.id}`)})
+            
+            if (admin){
+                this.projectDiv.getElementsByClassName(`proj-delete-btn`)[0].addEventListener("click", ()=>{console.log(`Approve: ${this.projectDetails.title}, ${this.projectDetails.id}`)})
+                this.projectDiv.getElementsByClassName(`proj-approve-btn`)[0].addEventListener("click", ()=>{console.log(`delete: ${this.projectDetails.title}, ${this.projectDetails.id}`)})
+            }else{
+                this.projectDiv.getElementsByClassName(`proj-join-btn`)[0].addEventListener("click", ()=>{console.log(`Join: ${this.projectDetails.title}, ${this.projectDetails.id}`)})
+            }
+
             return this.projectDiv
            
     }
@@ -56,10 +68,6 @@ class Project {
         this.projectDiv.remove()
     }
 }
-
-
-
-
 
 
 class ProjectStack{
@@ -83,7 +91,7 @@ class ProjectStack{
         //Scrolling logic
         this.prevLowestScrollPos = 0 //Based on scrollTop
         this.scrollToTopBtnShown = false
-        this.toggleScrollToTopBtn()
+        $("#scrollToTopBtn").hide()
 
         $("#projectStackContainer").on("scroll", async (event) => {
             // Pixels to scroll till bottom of page
@@ -92,6 +100,8 @@ class ProjectStack{
             if (this.scrollToTopBtnShown == false && (this.prevLowestScrollPos - event.currentTarget.scrollTop > 1000)){ // User significantly scrolling up, display scroll back to top btn
                 this.toggleScrollToTopBtn()
             } else if(this.scrollToTopBtnShown == true && (this.prevLowestScrollPos - event.currentTarget.scrollTop < 700)){
+                this.toggleScrollToTopBtn()
+            } else if(this.scrollToTopBtnShown == true && event.currentTarget.scrollTop < 500){ // If close to top, don't show scroll btn
                 this.toggleScrollToTopBtn()
             }
 
@@ -165,6 +175,7 @@ class ProjectStack{
                 this.allProjectsRead = true
                 this.loadProjectStackTerminator()
             } else {
+                console.log(responseObj)
                 responseObj.projects.forEach((project, idx) => {
                     let proj = new Project(project)
                     this.projectStack.push(proj)

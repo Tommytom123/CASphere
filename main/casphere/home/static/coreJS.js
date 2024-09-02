@@ -28,10 +28,6 @@ async function fetchPostWrapperForm(path, form){
   return response.status
 }
   
-async function getCoreValues(){
-  //globalAllowedYearGroups // Is possible to get these values from a server call, but less resource intensive to hardcode -> INLINE WITH THE ALLOWED_YEAR_GROUPS serverside var
-}
-
 async function getUserObj(){
   return await fetchPostWrapper("/getUserObj")
 }
@@ -115,10 +111,20 @@ async function initPageOnLoad(){
   } else {
     loadYearGroup()
   }
-  getCoreValues()
+
   onLoadValidators()
+
   globalProjectStack = new ProjectStack(globalUserObj["accessLevel"])
   globalProjectStack.fetchNewProjects()
+
+  switch (globalUserObj["accessLvel"]){
+    case 'admin':
+      console.log('Show admin page')
+    default: // Ie: student or other
+
+  }
+
+
 }
 
 

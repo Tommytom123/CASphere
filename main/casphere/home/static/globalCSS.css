@@ -207,17 +207,18 @@ input[type=number] {
 }
   
 
-.pin-project {
+.proj-pin-btn {
 color: grey;
 }
 
-.pin-project:hover {
+.proj-pin-btn:hover {
 color: black;
 }
 
 .project-subheading * {
 font-size:12px;
 margin-top:0px;
+height:18px;
 }
 
 .project-subheading > .student-name {

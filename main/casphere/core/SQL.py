@@ -40,6 +40,8 @@ def filterValues(values):
         print(err)
         return None
 
+
+
 def executeQuery(query, values = None, connection = None):
     try:
         commitQuery = False
@@ -50,14 +52,14 @@ def executeQuery(query, values = None, connection = None):
         filteredValues = filterValues(values)
         cursor.execute(query, filteredValues)
         response = cursor.fetchall()
-        primaryKey = cursor.lastrowid
+        rowId = cursor.lastrowid
         if commitQuery:
             connection.commit()
         connection.close()
-        return {'data':response, 'dbKey':primaryKey}
+        return {'data':response, 'rowId':rowId}
     except Exception as err:
         print(err)
         print(query)
         print(filteredValues)
-        return {'data':None, 'dbKey':None, 'error':True}
+        return {'data':None, 'rowId':None, 'error':True}
 #print(executeQuery("SELECT * FROM users WHERE first_name = %s", ['Bob']))

@@ -3,41 +3,45 @@ from ..core.SQL import executeQuery
 from ..core.general import flattenArray, getSqlPlaceholders, formatDateTime, indexOf
 import datetime as dt
 
-globalMaxRequestProjectsLimit = 3 # Maximum number of projects which can be requested at a time
+globalMaxRequestProjectsLimit = 8 # Maximum number of projects which can be requested at a time
 projectRankingFormulae = '(IF(prj.approved_by_id is not null, 100,0) + day(prj.date_start)) AS ranking'
 
 # Contains all the DB col names, names, join information (and required values)
-#   For fields that have a manual entry (In the form) the formType and formFieldName are required for processing -> Seen in 
+#   For fields that have a manual entry (In the form) the valType and formFieldName are required for processing -> Seen in 
 globalProjectStructure = { 
     'fields':{
+        'id': {
+            'dbColRead':'prj.id',
+            'valType': 'int'
+        }, 
         'title': {
             'dbColRead':'prj.title',
             'dbColInsert':'title',
-            'formType': 'text',
+            'valType': 'text',
             'formFieldName': 'addProjectTitle'
         }, 
         'description':{
             'dbColRead':'prj.description',
             'dbColInsert':'description',
-            'formType': 'text',
+            'valType': 'text',
             'formFieldName': 'addProjectDescription'
         },
         'startDate':{
             'dbColRead':'prj.date_start',
             'dbColInsert':'date_start',
-            'formType': 'date',
+            'valType': 'date',
             'formFieldName': 'addProjectStartDate'
         },
         'endDate':{
             'dbColRead':'prj.date_end',
             'dbColInsert':'date_end',
-            'formType': 'date',
+            'valType': 'date',
             'formFieldName': 'addProjectEndDate'
         },
         #'img':{
         #    'dbColRead':'prj.image',
         #    'dbColInsert':'image',
-        #    'formType': 'img',
+        #    'valType': 'img', # What is inserted into the DB is a random Gen of the 
         #    'formFieldName': ''
         #},
         'participantLim':{
@@ -48,31 +52,39 @@ globalProjectStructure = {
         "strand":{
             'dbColRead':'prj.strand',
             'dbColInsert':'strand',
-            'formType': 'radioBtn',
+            'valType': 'radioBtn',
             'formFieldName': 'strandRadio'
         },
         'years':{
             'dbColRead':'prj.years',
             'dbColInsert':'years',
-            'formType': 'multiSelect',
+            'valType': 'multiSelect',
             'formFieldName': ["yearGroupCheckbox_1","yearGroupCheckbox_2","yearGroupCheckbox_3","yearGroupCheckbox_4","yearGroupCheckbox_5"]
         },
         'location':{
             'dbColRead':'prj.location',
             'dbColInsert':'location',
-            'formType': 'text',
+            'valType': 'text',
             'formFieldName': "addProjectLocation"
         },
-        'owner':{
+        'ownerName':{
             'dbColRead':"CONCAT(own.first_name, ' ', own.last_name)",
             'dbColInsert':'owner_id',
-            'formType': 'int',
-            'insertFK': {'query':'SELECT u.id FROM users AS u JOIN active_sessions as acts ON acts.user_id = u.id WHERE acts.unique_key = %s', 'value':'sessionKey'}
+            'valType': 'text',
+            'insertFK': {'query':'SELECT u.id FROM users AS u JOIN active_sessions as acts ON acts.user_id = u.id WHERE acts.token = %s', 'value':'sessionToken'}
+        },
+        'ownerYear':{
+            'dbColRead':"own.year_group",
+            'valType': 'text',
+        },
+        'ownerEmail':{
+            'dbColRead':"own.email",
+            'valType': 'text',
         },
         'uploadedDate':{
             'dbColRead':'prj.uploaded_date',
             'dbColInsert':'uploaded_date',
-            'formType': 'date',
+            'valType': 'date',
             'default': lambda : formatDateTime(dt.datetime.now())
         },
         'participants':{
@@ -81,7 +93,7 @@ globalProjectStructure = {
         'maxParticipants':{
             'dbColRead':'prj.max_participant_count',
             'dbColInsert':'max_participant_count',
-            'formType': 'int',
+            'valType': 'int',
             'formFieldName': 'maxParticipantsInput'
         },
         'approved_by_id':{
@@ -94,16 +106,16 @@ globalProjectStructure = {
 
     },
     'joins':[
-        'LEFT JOIN users as own ON prj.owner_id = own.id'
+        'LEFT JOIN users AS own ON prj.owner_id = own.id'
     ]
 }
 
 # Check user acess level
-def checkAccessLevel(userSessionKey, action): # Still needs to be implemented
+def checkAccessLevel(userSessionToken, action): # Still needs to be implemented
     return True
 
 def formatFormValues(field, form, files):
-    match (field["formType"]):
+    match (field["valType"]):
         case 'text':
             return form[field["formFieldName"]]
         case 'radioBtn':
@@ -121,20 +133,20 @@ def formatFormValues(field, form, files):
         
 
 #Get the column and values for the query UPDATE/INSERT format
-def getQueryColumnsValues(userSessionKey, form, files):
+def getQueryColumnsValues(userSessionToken, form, files):
     columns = []
     values = []
-    for key, field in globalProjectStructure['fields'].items():
+    for Token, field in globalProjectStructure['fields'].items():
         try:
-            if (field.get("formType",False) != False):
+            if (field.get("valType",False) != False):
                 # If the value needs to be inserted into a seperate table (Eg: in a many-many instance)
                     # Not implemented as of yet
                     
-                # If the value is a FK-Primary Key link
+                # If the value is a FK-Primary Token link
                 if (field.get("insertFK",False) != False):
                     match (field['insertFK']["value"]):
-                        case "sessionKey":
-                            queryValue = userSessionKey
+                        case "sessionToken":
+                            queryValue = userSessionToken
                         case _:
                             queryValue = formatFormValues(field, form, files)
                     response = executeQuery(field['insertFK']['query'], [queryValue])
@@ -157,11 +169,11 @@ def getQueryColumnsValues(userSessionKey, form, files):
     return columns, values
 
 #Submitting
-def submitProject(userSessionKey, form, files):
+def submitProject(userSessionToken, form, files):
     successCode = 401
-    if(checkAccessLevel(userSessionKey, "addProject")):
+    if(checkAccessLevel(userSessionToken, "addProject")):
         try:
-            columns, values = getQueryColumnsValues(userSessionKey, form, files)
+            columns, values = getQueryColumnsValues(userSessionToken, form, files)
             response = executeQuery(f"INSERT INTO projects ({','.join(columns)}) VALUES ({getSqlPlaceholders(values)})", values) 
             print(response)
             if (response.get('error',False)):
@@ -179,10 +191,10 @@ def getReadColumns():
     colNames = []
     colTypes = []
     for key, field in globalProjectStructure['fields'].items():
-        if ((field.get("formType",False) != False) and (field.get("dbColRead",False) != False)):
+        if ((field.get("valType",False) != False) and (field.get("dbColRead",False) != False)):
                 colNames.append(key)
                 dbColumns.append(field["dbColRead"])
-                colTypes.append(field["formType"])
+                colTypes.append(field["valType"])
     return dbColumns, colNames, colTypes
 
 def buildProjectSearchQuery(**kwargs):
@@ -212,18 +224,18 @@ def buildProjectSearchQuery(**kwargs):
 
 def buildProjectObject(projRow, colNames, colTypes):
     projectObj = {}
-    for key in globalProjectStructure['fields']:
-        idx = indexOf(colNames, key)
+    for Token in globalProjectStructure['fields']:
+        idx = indexOf(colNames, Token)
         if idx != -1: 
             match (colTypes[idx]):
                 case "int":
-                    projectObj[key] = int(projRow[idx]) if projRow[idx] != None else None
+                    projectObj[Token] = int(projRow[idx]) if projRow[idx] != None else None
                 case "date":
-                    projectObj[key] = formatDateTime(projRow[idx])
+                    projectObj[Token] = formatDateTime(projRow[idx])
                 case "multiSelect":
-                    projectObj[key] = list(projRow[idx])
+                    projectObj[Token] = list(projRow[idx])
                 case _:
-                    projectObj[key] = projRow[idx]
+                    projectObj[Token] = projRow[idx]
     return projectObj
 
 def getProjects(**kwargs):
@@ -235,3 +247,23 @@ def getProjects(**kwargs):
     for projRow in queryResponse["data"]:
         projectObjs.append(buildProjectObject(projRow, colNames, colTypes))
     return projectObjs
+
+# Further project based actions
+
+def pinProject(userId, projectId):
+    return None
+
+def unPinProject(userId, projectId):
+    return
+
+def joinProject(userId, projectId):
+    return 
+
+def leaveProject(userId, projectId):
+    return
+
+def approveProject():
+    return
+
+def deleteProject():
+    return 

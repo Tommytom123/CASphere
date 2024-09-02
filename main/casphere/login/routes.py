@@ -44,13 +44,13 @@ def loginCallback():
         if userID == None:
             print("create user")
             userID = createUser(googleAccObj = userInfo)
-        session['KEY'] = createSession(userID, session.get('KEY',None)) # Create a new session/reset old session if it already existed
+        session["TOKEN"] = createSession(userID, userInfo, session.get('TOKEN',None)) # Create a new session/reset old session if it already existed
         return jsonify({'status':200}) #Return succes
     return jsonify({'status':401}) #Return Not authorized
 
 @login_bp.route("/logout", methods=['GET'])
 def logout():
-    deleteSession(session['KEY'])
+    deleteSession(session["TOKEN"])
     return render_template("login.html")
 
 

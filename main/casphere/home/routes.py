@@ -14,8 +14,8 @@ home_bp = Blueprint(
 # - Server Calls - 
 @home_bp.route("/home", methods=['GET'])
 def home():          
-    if ("KEY" in session):
-        userDetails = getUserInfoFromSessionKey(session['KEY'])
+    if ("TOKEN" in session):
+        userDetails = getUserInfoFromSessionToken(session["TOKEN"])
         if userDetails:              
             return render_template("home.html",
                                 name = userDetails["fullName"]
@@ -25,17 +25,17 @@ def home():
 #Data calls
 @home_bp.route("/getUserObj", methods=['POST'])
 def getUserObjReq():
-    userObj = getUserInfoFromSessionKey(session["KEY"])
+    userObj = getUserInfoFromSessionToken(session["TOKEN"])
     return userObj, None if not userObj else 200
 
 @home_bp.route("/assignYearGroup", methods=['POST'])
 def assignYearGroupReq():
-    responseCode = assignYearGroupFromSessionKey(session["KEY"], request.json['newYearGroup'])
+    responseCode = assignYearGroupFromSessionToken(session["TOKEN"], request.json['newYearGroup'])
     return {'action':'assignYearGroup'}, responseCode
 
 @home_bp.route("/submitProject", methods=['POST'])
 def submitProjectReq():
-    responseCode = submitProject(session["KEY"], request.form, request.files)
+    responseCode = submitProject(session["TOKEN"], request.form, request.files)
     return {'action':'submitProject'}, responseCode
 
 

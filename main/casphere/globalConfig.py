@@ -12,7 +12,9 @@ CLIENT_SECRET = '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'
 #Session details
 SESSION_LIFETIME = 48 #In Hours
 
-#
+# Image base diretory (In same folder as main.py (one folder up as this file))
+IMAGE_DIRECTORY = "/img_uploads"
+
 
 # -- Hardcoded on the frontend
 

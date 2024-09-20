@@ -41,6 +41,38 @@ def submitProjectReq():
 
 @home_bp.route("/getProjects", methods=['POST'])
 def getProjectsReq():
-    projectObjs = getProjects(**request.json)
-    return {'projects':projectObjs}, 200
+    try:
+        userInfo = getUserInfoFromSessionToken(session["TOKEN"])
+        projectObjs = getProjects(userInfo, request.json)
+        return {'projects':projectObjs}, 200
+    except Exception as err:
+        print(err)
+        return {'projects':[]}, 500
 
+@home_bp.route("/getUserOwnedProjects", methods=['POST'])
+def getUserOwnedProjectsReq():
+    try:
+        userInfo = getUserInfoFromSessionToken(session["TOKEN"])
+        projectObjs = getUserOwnedProjects(userInfo, request.json)
+        return {'projects':projectObjs}, 200
+    except Exception as err:
+        print(err)
+        return {'projects':[]}, 500
+
+@home_bp.route("/getUserJoinedProjects", methods=['POST'])
+def getUserJoinedProjectsReq():
+    try:
+        userInfo = getUserInfoFromSessionToken(session["TOKEN"])
+        projectObjs = getUserJoinedProjects(userInfo, request.json)
+        return {'projects':projectObjs}, 200
+    except Exception as err:
+        print(err)
+        return {'projects':[]}, 500
+
+
+# Project related actions
+
+@home_bp.route("/projectAction", methods=['POST'])
+def projectActionReq():
+    newProjDetails, status = projectAction(session["TOKEN"], request.json["action"], request.json["projectId"])
+    return newProjDetails, status

@@ -18,7 +18,7 @@ def deleteSession(sessionToken):
     executeQuery("DELETE FROM active_sessions WHERE token = %s", [sessionToken])
 
 # If the user           
-def createSession(userID, userInfo, oldToken = None):
+def createSession(userId, userInfo, oldToken = None):
     if oldToken:
         deleteSession(oldToken)
     # A base 64 encode of the email is done to ensure that there are no clashing token - even if they would be very rare (9^48 chance).
@@ -28,7 +28,7 @@ def createSession(userID, userInfo, oldToken = None):
     expireDate = startDate + dt.timedelta(hours=SESSION_LIFETIME)
     startDateStr = formatDateTime(startDate)
     expireDateStr = formatDateTime(expireDate)
-    executeQuery("INSERT INTO active_sessions (token, user_id, start_date,expire_date) VALUES (%s,%s,%s,%s)", [newToken,userID,startDateStr,expireDateStr])
+    executeQuery("INSERT INTO active_sessions (token, user_id, start_date,expire_date) VALUES (%s,%s,%s,%s)", [newToken,userId,startDateStr,expireDateStr])
 
     return newToken
 
@@ -57,7 +57,7 @@ def assignYearGroupFromSessionToken(sessionToken, year):
             return  500
     return 401
 
-def getUserId(**kwargs):
+def getuserId(**kwargs):
     userEmail = kwargs['googleAccObj']['email']
     dbResponse = executeQuery("SELECT id FROM users WHERE email = %s", [userEmail])
     try:

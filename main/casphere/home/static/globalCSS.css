@@ -160,6 +160,11 @@ input[type=number] {
 -moz-appearance: textfield;
 }
 
+/* Project card table css */
+/*.show-project-modal-li {
+
+}*/
+
 /* Project card CSS */
 
 .scroll-top-btn {
@@ -214,6 +219,15 @@ color: grey;
 .proj-pin-btn:hover {
 color: black;
 }
+.proj-pin-btn.selected {
+  color: rgb(0, 0, 0);
+}
+
+.proj-pin-btn.selected:hover {
+  color: rgb(58, 58, 58);
+}
+
+  
 
 .project-subheading * {
 font-size:12px;

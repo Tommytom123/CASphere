@@ -40,7 +40,7 @@ CREATE TABLE `projects_pinned` (
   PRIMARY KEY (`id`)
 );
 
-CREATE TABLE `projects_particpants` (
+CREATE TABLE `projects_participants` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
   `project_id` bigint unsigned NOT NULL,
   `user_id` bigint unsigned NOT NULL,

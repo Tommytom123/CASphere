@@ -40,11 +40,11 @@ def loginCallback():
     authToken = request.json["authToken"]
     userInfo = decode_jwt(authToken)
     if userInfo != None: #if Google account authorised
-        userID = getUserId(googleAccObj = userInfo)
-        if userID == None:
+        userId = getuserId(googleAccObj = userInfo)
+        if userId == None:
             print("create user")
-            userID = createUser(googleAccObj = userInfo)
-        session["TOKEN"] = createSession(userID, userInfo, session.get('TOKEN',None)) # Create a new session/reset old session if it already existed
+            userId = createUser(googleAccObj = userInfo)
+        session["TOKEN"] = createSession(userId, userInfo, session.get('TOKEN',None)) # Create a new session/reset old session if it already existed
         return jsonify({'status':200}) #Return succes
     return jsonify({'status':401}) #Return Not authorized
 

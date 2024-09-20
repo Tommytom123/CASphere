@@ -34,7 +34,7 @@
         </button>
       </div>
 
-      <div id="projectStackContainer" class="d-flex flex-column align-items-center hide-scrollbar" style="max-height: 84vh; overflow-y: scroll;">
+      <div id="projectScrollContainer" class="d-flex flex-column align-items-center hide-scrollbar" style="max-height: 84vh; overflow-y: scroll;">
 
       </div>
 
@@ -65,33 +65,6 @@
               </thead>
 
               <tbody class="hide-scrollbar" id="ownedProjectsTable">
-                <tr>
-                  <td class="col1">Project</td>
-                  <td class="col2">21-5-1999</td>
-                  <td class="col3"><a href="google.com">Info</a></td>
-                </tr>
-          
-                <tr>
-                  <td class="col1">Long Project Name</td>
-                  <td class="col2">21-5-1999</td>
-                  <td class="col3"><a href="google.com">Info</a></td>
-                </tr>
-                <tr>
-                  <td class="col1">Long Project Name</td>
-                  <td class="col2">21-5-1999</td>
-                  <td class="col3"><a href="google.com">Info</a></td>
-                </tr>
-                <tr>
-                  <td class="col1">Long Project Name</td>
-                  <td class="col2">21-5-1999</td>
-                  <td class="col3"><a href="google.com">Info</a></td>
-                </tr>
-                <tr>
-                  <td class="col1">Long Project Name</td>
-                  <td class="col2">21-5-1999</td>
-                  <td class="col3"><a href="google.com">Info</a></td>
-                </tr>
-                
               </tbody>
             </table>
             <table class="table table-sm caption-top table-hover scrolldown">
@@ -103,24 +76,8 @@
                   <th class="col3">Info</th>
                 </tr>
               </thead>
-              <tbody id="paricipatingProjectsTable">
-                
-                <tr>
-                  <td class="col1">Project</td>
-                  <td class="col2">21-5-1999</td>
-                  <td class="col3"><a href="google.com">Info</a></td>
-                </tr>
-          
-                <tr>
-                  <td class="col1">Long Project Name</td>
-                  <td class="col2">21-5-1999</td>
-                  <td class="col3"><a href="google.com">Info</a></td>
-                </tr>
-                <tr>
-                  <td class="col1">Long Project Name</td>
-                  <td class="col2">21-5-1999</td>
-                  <td class="col3"><a href="google.com">Info</a></td>
-                </tr>
+              <tbody class="hide-scrollbar" id="joinedProjectsTable">
+              </tbody>
             </table>
             
           </div>
@@ -306,6 +263,23 @@
             <button type="submit" class="btn btn-primary">Add</button>
           </div>
         </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal | Show project -->
+<div class="modal fade" id="showProjectModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="selectYearModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="selectYearModalLabel">Project</h5>
+      </div>
+      <div id="showProjectModalBody" class="modal-body">
+       
+      </div>
+      <div class="modal-footer">
+        <button id="selectedYearCloseBtn" type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
       </div>
     </div>
   </div>

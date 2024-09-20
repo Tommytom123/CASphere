@@ -8,6 +8,9 @@ const errorStatusList = [500,401]
 var globalUserObj = {}
 var globalProjectStack = null
 
+
+// HELPER FUNCTIONS
+
 async function fetchPostWrapper(path, body = {}){
     var response = await fetch(path, {
         method: "POST",
@@ -27,12 +30,17 @@ async function fetchPostWrapperForm(path, form){
     });
   return response.status
 }
-  
+
+function formatDateTimeToDate(dateString) { // Removes the trailing time returned by the SQL date
+  return dateString.slice(0,10)
+}
+
 async function getUserObj(){
   return await fetchPostWrapper("/getUserObj")
 }
 
-// 
+
+ 
 
 // -- Adding Projects --
 
@@ -100,6 +108,28 @@ async function onYearSelectConfirm(){
   $("#selectYearModal").modal('hide')
 }
 
+async function loadSidebar(){
+  /*
+  // [[html tableID, endpoint], []...
+  [["#ownedProjectsTable","/getUserOwnedProjects"],["#joinedProjectsTable", "/getUserJoinedProjects"]].forEach(async (sidebar)=>{
+    var responseObj = await fetchPostWrapper(sidebar[1])
+    if (errorStatusList.includes(responseObj)){
+      $(sidebar[0]).html = `<tr>INTERNAL SERVER ERROR<tr>`
+        allProjectsRead = true
+        return
+    } if (responseObj.projects.length == 0){ // All projects have been read
+      $(sidebar[0]).html = `<tr>No owned Projects<tr>`
+    } else {
+        responseObj.projects.forEach((project, idx) => {
+            let proj = new Project(project)
+            $(sidebar[0]).append(proj.loadTableHTML(this.admin))
+        })
+    }  
+  })
+  */
+}
+
+
 // ------------------------------------------
 
 // -- Function called on initial page load --
@@ -114,18 +144,26 @@ async function initPageOnLoad(){
 
   onLoadValidators()
 
-  globalProjectStack = new ProjectStack(globalUserObj["accessLevel"])
-  globalProjectStack.fetchNewProjects()
-
   switch (globalUserObj["accessLvel"]){
     case 'admin':
       console.log('Show admin page')
     default: // Ie: student or other
-
   }
+
+  /*
+  // Getting projects
+  loadSidebar()
+  globalProjectStack = new ProjectStack(globalUserObj["accessLevel"])
+  globalProjectStack.fetchNewProjects()
+  */
+  const mainProjectSet = new ProjectSet(globalUserObj["accessLvel"])
+  const projectScroll = new ProjectScrollDisplay(mainProjectSet, 'projectScrollContainer')
+  
+  const ownedProjectsTable = new ProjectsOwnedTable(mainProjectSet, 'ownedProjectsTable')
+  const joinedProjectsTable = new ProjectsJoinedTable(mainProjectSet, 'joinedProjectsTable')
 
 
 }
 
-
+// Load the page
 window.onload = initPageOnLoad

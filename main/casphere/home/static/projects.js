@@ -12,7 +12,7 @@ const actionMessages = {
 /*
 Project logic
 
-All projects recieved go into a SET (Avoids duplicate objects, and allows tables/cards to act as pointers and live update all occurences)
+All projects recieved go into a SET (Avoids duplicate objects, and allows tables/cards to act as pointers and live update all occurrences)
 */
 
 
@@ -36,6 +36,23 @@ pinned: true,
 joined: true,
 approved: true,
 */
+
+// All the projects in the program
+class ProjectSet{ // Not technically a set, really a separate object which stores all the projects, but mainly ensures that they aren't stored as duplicates
+    constructor(accessLevel) {
+        this.projectSet = {} // projectID : Project Object (Removes duplicates, thus acting as a set, whilst still being accessible based on a key)
+        this.admin = (accessLevel == 'admin')
+    }
+
+    addProject(project){    
+        if (project.id in this.projectSet){
+            return this.projectSet[project.id]
+        }else{
+            this.projectSet[project.id] = new Project(project, this.admin)
+            return this.projectSet[project.id]
+        }
+    }
+}
 
 // A single project item
 
@@ -159,9 +176,13 @@ class ProjectTableRowVisualization{ // The same project can be shown in multiple
 
         this.rowElement.getElementsByClassName(`show-project-modal-li`)[0].addEventListener("click", ()=>{
             $("#showProjectModal").modal('show');
-            $("#showProjectModalBody").empty().append(this.getCardDiv('modal'))
+            $("#showProjectModalBody").empty().append(this.baseProjectObj.getCardDiv('modal'))
         })
 
+    }
+
+    updateInstance(){
+        return // Currently does nothing, but is here if a feature gets added which requires this to be updated upon its instance changing
     }
 
     loadHTML(){
@@ -204,9 +225,10 @@ class Project {
             return this.activeVisualizations[id].loadHTML()
         }
     }
+
     getTableElement(id){
         if (id in this.activeVisualizations){ // visuali
-            return this.activeVisualizations[id].projectDiv
+            return this.activeVisualizations[id].rowElement
         }else{ // Visualization doesn't already exist -> create it, and return div
             this.activeVisualizations[id] = new  ProjectTableRowVisualization(this)
             return this.activeVisualizations[id].loadHTML()
@@ -241,24 +263,9 @@ class Project {
     
 }
 
-// All the projects in the program
-class ProjectSet{ // Not technically a set, really a seperate object which stores all the projects, but mainly ensures that they aren't stored as duplicates
-    constructor(accessLevel) {
-        this.projectSet = {1:'Appple'} // projectID : Project Object (Removes duplicates, thus acting as a set, whilst still being accessible based on a key)
-        this.admin = (accessLevel == 'admin')
-    }
 
-    addProject(project){    
-        if (project.id in this.projectSet){
-            return this.projectSet[project.id]
-        }else{
-            this.projectSet[project.id] = new Project(project, this.admin)
-            return this.projectSet[project.id]
-        }
-    }
-}
 
-// "Extentions" from ProjectSet. Not really extensions, but take core projectSet data
+// "Extensions" from ProjectSet. Not really extensions, but take core projectSet data
 
 class ProjectScrollDisplay{
     constructor(projectSet, containerId){
@@ -273,7 +280,7 @@ class ProjectScrollDisplay{
         this.scrollDivTerminatorDiv = document.createElement('div');
         this.scrollDivTerminatorDiv.id = "ProjectsScrollTerminator"
         this.scrollDivTerminatorDiv.classList.add("d-flex","flex-column","align-items-center")
-        //this.loadscrollDivTerminator()
+        //this.loadScrollDivTerminator()
 
         $(`#${this.containerId}`).append(this.scrollDiv)
         $(`#${this.containerId}`).append(this.scrollDivTerminatorDiv)
@@ -329,7 +336,7 @@ class ProjectScrollDisplay{
         
     }
 
-    loadscrollDivTerminator() {
+    loadScrollDivTerminator() {
     }
 
     async removeAllProjects(){
@@ -350,12 +357,11 @@ class ProjectScrollDisplay{
 
         if (responseObj.projects.length == 0){ // All projects have been read
             this.allProjectsRead = true
-            this.loadscrollDivTerminator()
+            this.loadScrollDivTerminator()
         } else { */
         responseObj.projects.forEach((project) => {
-            let projObj = new Project(project, this.admin)
-            this.loadedProjectIds.add(project.id)
-            this.projectSet.projectSet[project.id] = projObj // Adds new entry to key/value mapping if doesn't exist - otherwise overwrites old one
+
+            var projObj = this.projectSet.addProject(project) // Adds new entry to key/value mapping if doesn't exist - otherwise overwrites old one
             this.scrollDiv.append(projObj.getCardDiv('scrollDisplay'))
         })
         //}
@@ -376,7 +382,7 @@ class ProjectTable{
     //}
 }
 
-// Extentions from the projectTable
+// Extensions from the projectTableis.getCardD
 
 class ProjectsOwnedTable extends ProjectTable{
     constructor(projectSet,containerId){
@@ -432,7 +438,7 @@ class ProjectScrollDisplay{
         this.scrollDivTerminatorDiv = document.createElement('div');
         this.scrollDivTerminatorDiv.id = "scrollDivTerminator"
         this.scrollDivTerminatorDiv.classList.add("d-flex","flex-column","align-items-center")
-        this.loadscrollDivTerminator()
+        this.loadScrollDivTerminator()
 
         $("#scrollDivContainer").append(this.scrollDiv)
         $("#scrollDivContainer").append(this.scrollDivTerminatorDiv)
@@ -485,7 +491,7 @@ class ProjectScrollDisplay{
         
     }
 
-    loadscrollDivTerminator() {
+    loadScrollDivTerminator() {
         if(this.allProjectsRead){
             this.scrollDivTerminatorDiv.innerHTML = `All projects have been loaded <button class="btn btn-primary" onclick="globalscrollDiv.scrollToTop()">scroll to top</button>`
         } else {
@@ -540,7 +546,7 @@ class ProjectsJoinedTable extends ProjectTable{
 
             if (responseObj.projects.length == 0){ // All projects have been read
                 this.allProjectsRead = true
-                this.loadscrollDivTerminator()
+                this.loadScrollDivTerminator()
             } else {
                 responseObj.projects.forEach((project, idx) => {
                     let proj = new Project(project, this.admin)

@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="en">
-  <head>
+<head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>CASphere</title>
@@ -50,49 +50,48 @@
                 <div class="card-body h-100">
                     <h5 class="card-title">CASphere - Login</h5>
                     <hr>
-                   <!-- <p class="card-text h-100">Login</p>-->
+                    <!-- <p class="card-text h-100">Login</p>-->
                     
                     <script src="https://accounts.google.com/gsi/client?hl=en" async></script>
                     <script>
-                      async function handleCredentialResponse(response) {
-                        //console.log("Encoded JWT ID token: " + response.credential);
-                        // Send the JWT ID token (response.credential) to login endpoint
-                        console.log("Logging in")
-                        var response = await fetch("/login/callback",{
-                            method: "POST",
-                            headers: {
-                                "Content-Type": "application/json",
-                            },
-                            body: JSON.stringify({
-                                authToken: response.credential
-                            })
+                        async function handleCredentialResponse(response) {
+                            //console.log("Encoded JWT ID token: " + response.credential);
+                            // Send the JWT ID token (response.credential) to login endpoint
+                            console.log("Logging in")
+                            var response = await fetch("/login/callback", {
+                                method: "POST",
+                                headers: {
+                                    "Content-Type": "application/json",
+                                },
+                                body: JSON.stringify({
+                                    authToken: response.credential
+                                })
+                            }
+                            )
+                            var responseObj = await response.json()
+                            if (responseObj.status == 200) {
+                                window.location.href = "https://localhost:5000/home";
+                                return
+                            } // Show error message
+                            console.log("Error")
                         }
-                        )
-                        var responseObj = await response.json()
-                        if (responseObj.status == 200){
-                            window.location.href = "https://localhost:5000/home";
-                            return
-                        } // Show error message
-                        console.log("Error")
-                    }
-                      window.onload = function () {
-                        google.accounts.id.initialize({
-                          client_id: "300028427783-2mnga77mhs3dcrl36rmsk8to8bc9dk0v.apps.googleusercontent.com",
-                          callback: handleCredentialResponse
-                        });
-                        google.accounts.id.renderButton(
-                          document.getElementById("buttonDiv"),
-                          { theme: "filled_black", size: "large", logo_alignment:"left", width:"500px", locale:"en"
-                           }  
-                        );
-                        //google.accounts.id.prompt(); // also display the One Tap dialog
-                      }
+                        window.onload = function () {
+                            google.accounts.id.initialize({
+                                client_id: "300028427783-2mnga77mhs3dcrl36rmsk8to8bc9dk0v.apps.googleusercontent.com",
+                                callback: handleCredentialResponse
+                            });
+                            google.accounts.id.renderButton(
+                                document.getElementById("buttonDiv"),
+                                {
+                                    theme: "filled_black", size: "large", logo_alignment: "left", width: "500px", locale: "en"
+                                }
+                            );
+                            //google.accounts.id.prompt(); // also display the One Tap dialog
+                        }
                     </script>
                     
                     
                     <div id="buttonDiv" style="margin-top:90px"></div>
-                   
-
                     <p class="d-flex card-text align-bottom pb-1 align-items-center"><small class="text-muted">@CASphere | 2024</small></p>
                 </div>
             </div>

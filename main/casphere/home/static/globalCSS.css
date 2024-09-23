@@ -165,7 +165,45 @@ input[type=number] {
 
 }*/
 
+.vl-navbar {
+  border-left: 1px solid grey;
+  margin-top: 8px;
+  margin-bottom: 8px;
+  
+}
+
+
+/* search bar */
+
+.search-proj-label{
+  float:left;
+  min-height: 20px;
+}
+
+.search-proj-input{
+  max-width: 300px;
+}
+
+.dropdown-menu.filter-dropdown-body{
+  min-width:250px;
+  
+}
+
+.proj-scroll-container{
+  -webkit-mask-image: linear-gradient(transparent, black 3%, black 95%, transparent);
+  mask-image: linear-gradient(transparent, black 3%, black 95%, transparent);
+
+}
+
 /* Project card CSS */
+.modal-dialog-centered{
+  min-width: 832px;
+  max-width: 832px;
+}
+
+.modal-opaque {
+  background-color: rgba(0,0,0,0.1);
+}
 
 .scroll-top-btn {
   opacity: 0.78;

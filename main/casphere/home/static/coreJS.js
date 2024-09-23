@@ -35,12 +35,28 @@ function formatDateTimeToDate(dateString) { // Removes the trailing time returne
   return dateString.slice(0,10)
 }
 
+function parseIsoDate(dateStr){ //Year-Month-Day
+  var splitDateStr = dateStr.split("-");
+  if (splitDateStr[0].length != 4 || splitDateStr[1].length != 2 || splitDateStr[2].length != 2){
+    return false
+  }
+  return new Date(parseInt(splitDateStr[0], 10), parseInt(splitDateStr[1], 10) - 1, parseInt(splitDateStr[2], 10));
+}
+
+// Facilitates strings, dates 
+function isGreaterThan(a,b){
+  console.log(`A:${a} | B:${b} |dateA:${Date.parse(a)} | dateA:${Date.parse(b)}`)
+  if (parseIsoDate(a) && parseIsoDate(b)){
+    console.log(parseIsoDate(a) > parseIsoDate(b))
+    return parseIsoDate(a) > parseIsoDate(b)
+  } 
+  console.log(a>b)
+  return a > b
+}
+
 async function getUserObj(){
   return await fetchPostWrapper("/getUserObj")
 }
-
-
- 
 
 // -- Adding Projects --
 
@@ -144,7 +160,7 @@ async function initPageOnLoad(){
 
   onLoadValidators()
 
-  switch (globalUserObj["accessLvel"]){
+  switch (globalUserObj["accessLevel"]){
     case 'admin':
       console.log('Show admin page')
     default: // Ie: student or other
@@ -156,11 +172,8 @@ async function initPageOnLoad(){
   globalProjectStack = new ProjectStack(globalUserObj["accessLevel"])
   globalProjectStack.fetchNewProjects()
   */
-  const mainProjectSet = new ProjectSet(globalUserObj["accessLvel"])
-  const projectScroll = new ProjectScrollDisplay(mainProjectSet, 'projectScrollContainer')
-  
-  const ownedProjectsTable = new ProjectsOwnedTable(mainProjectSet, 'ownedProjectsTable')
-  const joinedProjectsTable = new ProjectsJoinedTable(mainProjectSet, 'joinedProjectsTable')
+  const mainProjectSet = new ProjectSet(globalUserObj["accessLevel"])
+
 
 
 }

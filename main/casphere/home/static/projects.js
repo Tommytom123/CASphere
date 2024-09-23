@@ -42,13 +42,20 @@ class ProjectSet{ // Not technically a set, really a separate object which store
     constructor(accessLevel) {
         this.projectSet = {} // projectID : Project Object (Removes duplicates, thus acting as a set, whilst still being accessible based on a key)
         this.admin = (accessLevel == 'admin')
+
+        //Initializing the main display
+        this.projectScroll = new ProjectScrollDisplay(this, 'projectScrollContainer')
+
+        //Initializing the sidebar tables
+        this.ownedProjectsTable = new ProjectsOwnedTable(this, 'ownedProjectsTable')
+        this.joinedProjectsTable = new ProjectsJoinedTable(this, 'joinedProjectsTable')
     }
 
     addProject(project){    
         if (project.id in this.projectSet){
             return this.projectSet[project.id]
         }else{
-            this.projectSet[project.id] = new Project(project, this.admin)
+            this.projectSet[project.id] = new Project(this, project, this.admin)
             return this.projectSet[project.id]
         }
     }
@@ -114,8 +121,6 @@ class ProjectCardVisualization{ // The same project can be shown in multiple loc
 
             // Setting up eventlistners
             this.projPinBtn.addEventListener("click", ()=>{
-                console.log(`Pin: ${this.baseProjectObj.projectDetails.title}, ${this.baseProjectObj.projectDetails.id}`)
-                console.log(this.baseProjectObj.projectDetails.pinned)
                 this.baseProjectObj.projectAction(this.baseProjectObj.projectDetails.pinned ? 'unpin' : 'pin') // Has a {key:value pair of the new value for  this.projectDetails}
             })
             
@@ -124,13 +129,12 @@ class ProjectCardVisualization{ // The same project can be shown in multiple loc
                 this.projDeleteBtn.addEventListener("click", ()=>{console.log(`delete: ${this.baseProjectObj.projectDetails.title}, ${this.projectDetails.id}`)})
             }else{
                 this.projJoinBtn.addEventListener("click", ()=>{
-                    console.log(`Join: ${this.baseProjectObj.projectDetails.title}, ${this.baseProjectObj.projectDetails.id}`)
                     this.baseProjectObj.projectAction(this.baseProjectObj.projectDetails.joined ? 'leave' : 'join')
                 })
             }
     }
 
-    updateInstance() { // Updates card based on the baseProjectObj details (Which is shared between all visualizations)
+    updateInstance() { // Updates card based on the baseProjectObj details (Which is shared between all visualizations). This only updates the VISUAL ELEMENTS -> Not if it should be appended/removed from other tables
         if (this.baseProjectObj.projectDetails.pinned){ // Pinned
             this.projPinBtn.classList.add('selected')
         } else {
@@ -176,13 +180,13 @@ class ProjectTableRowVisualization{ // The same project can be shown in multiple
 
         this.rowElement.getElementsByClassName(`show-project-modal-li`)[0].addEventListener("click", ()=>{
             $("#showProjectModal").modal('show');
-            $("#showProjectModalBody").empty().append(this.baseProjectObj.getCardDiv('modal'))
-        })
+            $("#showProjectModalBody").empty().append(this.baseProjectObj.getCardDiv('showProjectModalBody')) 
+        }) //formatDateTimeToDate(this.baseProjectObj.projectDetails.startDate)
 
     }
 
-    updateInstance(){
-        return // Currently does nothing, but is here if a feature gets added which requires this to be updated upon its instance changing
+    updateInstance(){ // Currently does nothing, but is here if a feature gets added which requires this to be updated upon its instance changing
+        return null
     }
 
     loadHTML(){
@@ -195,26 +199,12 @@ class ProjectTableRowVisualization{ // The same project can be shown in multiple
 }
 
 class Project {
-    constructor(projectDetailsJson, admin = false){
+    constructor(parentSet, projectDetailsJson, admin = false){
+        this.parentSet = parentSet
         this.projectDetails = projectDetailsJson
         this.showAsAdmin = admin
-        this.activeVisualizations = {} // Dictionary of all the visualizations
+        this.activeVisualizations = {} // Dictionary of all the visualizations. Its key is referencing to the container the project is displayed in (Since in the individual container there cant be any duplicate elements)
     }
-
-    /*
-    loadTableHTML(){
-        this.projectTableDiv = document.createElement('tr');
-        this.projectTableDiv.innerHTML = `<td class="col1">${this.projectDetails.title}</td>
-                                        <td class="col2">${formatDateTimeToDate(this.projectDetails.startDate)}</td>
-                                        <td class="col3"><a class="show-project-modal-li">Info</a></td>`
-
-        this.projectTableDiv.getElementsByClassName(`show-project-modal-li`)[0].addEventListener("click", ()=>{
-            $("#showProjectModal").modal('show');
-            $("#showProjectModalBody").empty().append(this.getCardDiv('modal'))
-        })
-        
-        return this.projectTableDiv
-    }*/
 
     // Visualization based functions
     getCardDiv(id){
@@ -230,12 +220,19 @@ class Project {
         if (id in this.activeVisualizations){ // visuali
             return this.activeVisualizations[id].rowElement
         }else{ // Visualization doesn't already exist -> create it, and return div
-            this.activeVisualizations[id] = new  ProjectTableRowVisualization(this)
+            this.activeVisualizations[id] = new ProjectTableRowVisualization(this)
             return this.activeVisualizations[id].loadHTML()
         }
     }
 
-    updateAllVisualizations(){
+    updateAllProjectInstances(){
+        if (this.projectDetails.joined == true){
+            this.parentSet.joinedProjectsTable.addToTable(this)
+        } else {
+            this.parentSet.joinedProjectsTable.removeFromTable(this)
+        } 
+
+        // Update its visual elements
         Object.values(this.activeVisualizations).forEach((visualizationObj)=>{
             visualizationObj.updateInstance()
         })
@@ -253,7 +250,7 @@ class Project {
             Object.keys(responseJson).forEach((key)=>{ // Update the old values with the new
                 this.projectDetails[key] = responseJson[key]
             })
-            this.updateAllVisualizations()
+            this.updateAllProjectInstances()
             var responseMsg = responseJson.success ? actionMessages.success[action] : actionMessages.error[action]
             if (responseMsg) { // Not null or undefined/ it exists
                 showAlert(responseJson.success? '': '', responseMsg)
@@ -344,7 +341,7 @@ class ProjectScrollDisplay{
     
     async fetchNewProjects(){
         var params = {
-            "after": this.loadedProjectIds.length
+            "after": this.scrollDiv.children.length
         }
         var responseObj = await fetchPostWrapper("/getProjects", params)
         console.log(responseObj)
@@ -362,7 +359,7 @@ class ProjectScrollDisplay{
         responseObj.projects.forEach((project) => {
 
             var projObj = this.projectSet.addProject(project) // Adds new entry to key/value mapping if doesn't exist - otherwise overwrites old one
-            this.scrollDiv.append(projObj.getCardDiv('scrollDisplay'))
+            this.scrollDiv.append(projObj.getCardDiv(this.containerId))
         })
         //}
         
@@ -373,16 +370,62 @@ class ProjectScrollDisplay{
 class ProjectTable{
     constructor(projectSet, tableContainerId){
         this.projectSet = projectSet  // Since the project set is passed as an object, it works as a pointer to the projectSet object. Any changes made will thus reflect in the original object instance
-        //this.loadedProjectIds = new Set() // This is an set of the project keys (referencing projectSet) which are loaded to show for this specific display
+        this.tableContainerId = tableContainerId
         this.tableContainer = document.getElementById(tableContainerId)
     }
 
-    //removeFromTable(projectId){
-    //    this.loadedProjectIds.delete(projectId)
-    //}
+
+    // Recursive func which returns the child element which the new element needs to be inserted BEFORE (null if inserted at end of element) based upon the sorting columns. Multiple columns can be passed in array of idx
+    // Range is a 2 long array with the start and end indexes of which children to sort between. Used by the recursive call for the next column to search upon
+    getSortedInsertLoc(elementToInsert, columnIdx, range = undefined){ 
+        //Checking range is correct type and setting default val
+        if (range == undefined) {range = [0, this.tableContainer.children.length]}
+        if (range[0] < 0) {range[0] = 0}
+        if (range[1] >= this.tableContainer.children.length) {range[1] = this.tableContainer.children.length}
+
+        var sameValStartIdx = null
+
+        // Insert Before item that is greater than it (In respective col)
+        for (var i = range[0]; i < range[1]; i++){
+            // Depending if there needs to be a second sort upon another column, we store the range idx for when the column has the same val
+            if (isGreaterThan(this.tableContainer.children[i].children[columnIdx[0]].innerHTML, elementToInsert.children[columnIdx[0]].innerHTML)){
+                if (columnIdx.length == 1){ // No other column to sort upon
+                    return this.tableContainer.children[i]
+                } else{
+                    if (sameValStartIdx != null){
+                        columnIdx.shift()
+                        return this.getSortedInsertLoc(elementToInsert, columnIdx, [sameValStartIdx, i])
+                    } else {
+                        return this.tableContainer.children[i]
+                    }
+                } 
+            }
+            if (this.tableContainer.children[i].children[columnIdx[0]].innerHTML == elementToInsert.children[columnIdx[0]].innerHTML && sameValStartIdx == null){sameValStartIdx = i}
+        }
+        if (sameValStartIdx != null){
+            columnIdx.shift()
+            return this.getSortedInsertLoc(elementToInsert, columnIdx, [sameValStartIdx, range[1]])
+        } else {
+            return this.tableContainer.children[range[1]] === undefined ? null : this.tableContainer.children[range[1]]
+        }
+    }
+
+    addToTable(projObj, columnSortIdx = [1,0]){ // ColumnSortIdx is a queue
+        var tableElement = projObj.getTableElement(this.tableContainerId)
+
+        // Find where to place the new element (Since the table is sorted by date)
+        var insertBeforeElement = this.getSortedInsertLoc(tableElement, columnSortIdx)
+
+        this.tableContainer.insertBefore(tableElement, insertBeforeElement)
+    }
+
+    removeFromTable(projObj){
+        var tableElement = projObj.getTableElement(this.tableContainerId)
+        tableElement.remove()
+    }
 }
 
-// Extensions from the projectTableis.getCardD
+// Extensions from projectTable
 
 class ProjectsOwnedTable extends ProjectTable{
     constructor(projectSet,containerId){
@@ -397,8 +440,7 @@ class ProjectsOwnedTable extends ProjectTable{
         console.log(responseObj)
         responseObj.projects.forEach((project) => {
             var projObj = this.projectSet.addProject(project)
-            //this.loadedProjectIds.push(project.id)
-            this.tableContainer.append(projObj.getTableElement('ownedTable'))  
+            this.tableContainer.append(projObj.getTableElement(this.tableContainerId))  
         })
         //}
         
@@ -418,143 +460,7 @@ class ProjectsJoinedTable extends ProjectTable{
         console.log(responseObj)
         responseObj.projects.forEach((project) => {
             var projObj = this.projectSet.addProject(project)
-            //this.loadedProjectIds.add(project.id)
-            this.tableContainer.append(projObj.getTableElement('joinedTable'))  
+            this.tableContainer.append(projObj.getTableElement(this.tableContainerId))  
         })
     }
 }
-
-
-/*
-class ProjectScrollDisplay{
-    constructor(displayDivId){
-        this.displayDivId = displayDivId
-        this.allProjectsRead = false // Boolean representing if all projects have been read
-
-        this.scrollDiv = document.createElement('div');
-        this.scrollDiv.id = "projectsStackCol"
-        this.scrollDiv.classList.add("d-flex","flex-column","align-items-center")
-
-        this.scrollDivTerminatorDiv = document.createElement('div');
-        this.scrollDivTerminatorDiv.id = "scrollDivTerminator"
-        this.scrollDivTerminatorDiv.classList.add("d-flex","flex-column","align-items-center")
-        this.loadScrollDivTerminator()
-
-        $("#scrollDivContainer").append(this.scrollDiv)
-        $("#scrollDivContainer").append(this.scrollDivTerminatorDiv)
-
-        //Scrolling logic
-        this.prevLowestScrollPos = 0 //Based on scrollTop
-        this.scrollToTopBtnShown = false
-        $("#scrollToTopBtn").hide()
-
-        $("#scrollDivContainer").on("scroll", async (event) => {
-            // Pixels to scroll till bottom of page
-            var scrollBottom = event.currentTarget.scrollHeight - event.currentTarget.clientHeight - event.currentTarget.scrollTop
-            this.prevLowestScrollPos = event.currentTarget.scrollTop > this.prevLowestScrollPos ? event.currentTarget.scrollTop : this.prevLowestScrollPos
-            if (this.scrollToTopBtnShown == false && (this.prevLowestScrollPos - event.currentTarget.scrollTop > 1000)){ // User significantly scrolling up, display scroll back to top btn
-                this.toggleScrollToTopBtn()
-            } else if(this.scrollToTopBtnShown == true && (this.prevLowestScrollPos - event.currentTarget.scrollTop < 700)){
-                this.toggleScrollToTopBtn()
-            } else if(this.scrollToTopBtnShown == true && event.currentTarget.scrollTop < 500){ // If close to top, don't show scroll btn
-                this.toggleScrollToTopBtn()
-            }
-
-            if (scrollBottom < 200) { // The placeholder loading proj is in view and thus new projects must be added to the stack
-                await this.fetchNewProjects()
-            }
-        });
-
-        $("#scrollToTopBtn").on("click", (event)=>{
-            this.scrollToTop()
-        })
-    }
-
-    toggleScrollToTopBtn(){
-        this.scrollToTopBtnShown = !this.scrollToTopBtnShown //Toggle var
-        if (this.scrollToTopBtnShown){
-            $("#scrollToTopBtn").show()
-            $("#scrollToTopBtn").animate({opacity: 0.78}, 500)
-        } else {
-            $("#scrollToTopBtn").animate({opacity: 0}, 500, ()=>{
-                $("#scrollToTopBtn").hide()
-            })
-            
-        }
-    }
-
-    scrollToTop() {
-        $("#scrollDivContainer").animate({scrollTop:0}, 500, ()=>{
-            this.prevLowestScrollPos = 0
-            this.toggleScrollToTopBtn()
-        }) // https://api.jquery.com/animate/
-        
-    }
-
-    loadScrollDivTerminator() {
-        if(this.allProjectsRead){
-            this.scrollDivTerminatorDiv.innerHTML = `All projects have been loaded <button class="btn btn-primary" onclick="globalscrollDiv.scrollToTop()">scroll to top</button>`
-        } else {
-            this.scrollDivTerminatorDiv.innerHTML = `<div id="placeholderCard" class="card project-card mt-2" aria-hidden="true">
-                                                            <div class="card-body">
-                                                            <h5 class="card-title placeholder-glow">
-                                                                <span class="placeholder col-6"></span>
-                                                            </h5>
-                                                            <p class="card-text placeholder-glow">
-                                                                <span class="placeholder col-7"></span>
-                                                                <span class="placeholder col-4"></span>
-                                                                <span class="placeholder col-4"></span>
-                                                                <span class="placeholder col-6"></span>
-                                                                <span class="placeholder col-8"></span>
-                                                            </p>
-                                                            <a class="btn btn-primary disabled placeholder col-6" aria-disabled="true"></a>
-                                                            </div>
-                                                        </div>
-                                                        <div class="m-2">
-                                                            <div class="spinner-border m-4" role="status">
-                                                            <span class="visually-hidden">Loading...</span>
-                                                            </div>
-                                                        </div>
-                                                        <button class="btn btn-primary" onclick="globalscrollDiv.fetchNewProjects()">Add projects</button>`
-        }
-    }
-
-    async removeAllProjects(){
-        while (this.scrollDiv.length > 0){
-            proj = this.scrollDiv.pop()
-            proj.removeFromPage()
-        }
-    }
-}
-*/
-
-
-/*
-class ProjectsJoinedTable extends ProjectTable{
-    async fetchNewProjects(){
-        if(!this.allProjectsRead){
-            var params = {
-                "after": this.scrollDiv.length
-            }
-            var responseObj = await fetchPostWrapper("/getProjects", params)
-            console.log(responseObj)
-            if (errorStatusList.includes(responseObj)){
-                this.scrollDivTerminatorDiv.innerHTML = `INTERNAL SERVER ERROR`
-                this.allProjectsRead = true
-                return
-            }
-
-            if (responseObj.projects.length == 0){ // All projects have been read
-                this.allProjectsRead = true
-                this.loadScrollDivTerminator()
-            } else {
-                responseObj.projects.forEach((project, idx) => {
-                    let proj = new Project(project, this.admin)
-                    this.scrollDiv.push(proj)
-                    this.scrollDiv.append(proj.loadHTML())
-                })
-            }
-        }
-    }
-}
-*/

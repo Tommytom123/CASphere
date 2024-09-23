@@ -13,28 +13,62 @@
 <div class="container-fluid" style="max-height: 100vh; overflow-y: hidden;">
   <div class="row justify-content-md-center">
     <div class="col-lg-8 d-flex flex-column justify-content-start order-lg-first order-last " style="max-width: 950px;">
+
       <div id="searchProjectsHeader" class="position-relative">
-        <form class="row g-3 w-100 justify-content-center m-2">
-          <div class="col-auto">
-            <span class="search-proj-text">Ongoing</br>Projects</span>
-          </div>
-          <div class="col-auto">
-            Search Projects
-          </div>
-          <div class="col-auto">
-            Filter 
-          </div>
-          <div class="col-auto">
-            <button type="submit" class="btn btn-primary mb-3">Search</button>
+      
+        <form>
+          <div class="d-flex mt-5">
+            
+            <div class="my-auto me-auto mx-4">
+              <i class="fa-solid fa-magnifying-glass fa-2xl"></i>
+              <!--<strong class="my-auto">Find Projects</strong> -->
+            </div>
+      
+            <input type="text" class="form-control mx-2 search-proj-input my-auto" id="searchProjectTitle" placeholder="Search by title">
+            <div class="dropdown"> <!-- The filter dropdown  -->
+              <button class="btn btn-secondary dropdown-toggle mx-2 filter-dropdown-btn my-auto" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
+                <i class="fa-solid fa-filter"></i>
+              </button>
+              <ul class="dropdown-menu filter-dropdown-body p-2">
+                <hr>
+                <h3>Starts between:</h3>
+                <div class="d-flex">
+                  <input type="date" class="form-control" id="startDateFilter" placeholder="Start Date">
+                  <span class="mx-2">to</span>
+                  <input type="date" class="form-control" id="endDateFilter" placeholder="End Date">
+                </div>
+                <hr>
+                <h3>Only show:</h3>
+                <li class="dropdown-item">
+                  <input type="checkbox" id="filterPinned" name="filterPinned">
+                  <label for="filterPinned">Pinned Projects</label>
+                </li>
+                <li class="dropdown-item">
+                  <input type="checkbox" id="filterApproved" name="filterApproved">
+                  <label for="filterApproved">Approved Projects</label>
+                </li>
+                <hr>
+                <div class="d-flex justify-content-end my-2">
+                  <button class="btn btn-secondary mx-2">Clear</button>
+                  <button class="btn btn-primary mx-2">Apply</button>
+                </div>
+              </ul>
+
+            </div>
+
+            <!-- Search Text Field and btn on the right -->
+            
+            <button type="submit" class="btn btn-primary ms-2 me-5 my-auto">Search</button>
           </div>
         </form>
+
         <hr>
         <button id="scrollToTopBtn" class="btn scroll-top-btn translate-middle">
           Back to start <i class="fa-solid fa-up-long"></i>
         </button>
       </div>
 
-      <div id="projectScrollContainer" class="d-flex flex-column align-items-center hide-scrollbar" style="max-height: 84vh; overflow-y: scroll;">
+      <div id="projectScrollContainer" class="d-flex flex-column align-items-center hide-scrollbar proj-scroll-container" style="max-height: 84vh; overflow-y: scroll;">
 
       </div>
 
@@ -42,10 +76,10 @@
     <div class="col-lg-4 d-flex flex-column justify-content-start order-lg-last order-first">
       <!-- Info Card + add proj stack -->
       <div> 
-        <button type="button" class="info-card-btn-width add-proj-btn btn py-3 mt-3 mx-3" onclick="addProjectShowForm()">
+        <button type="button" class="info-card-btn-width add-proj-btn btn py-3 mt-3 mx-3 shadow" onclick="addProjectShowForm()">
           <span style="font-size: 30px;">ADD PROJECT</span>
         </button>
-        <div class="card my-3 mx-3 info-card-btn-width" style="background-color: #fEfEfE;">
+        <div class="card my-3 mx-3 info-card-btn-width shadow" style="background-color: #fEfEfE;">
           <div class="card-body overflow-x-auto">
 
             <span class="card-title welcome-text">Welcome, {{ name }}</span>
@@ -269,14 +303,14 @@
 </div>
 
 <!-- Modal | Show project -->
-<div class="modal fade" id="showProjectModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="selectYearModalLabel" aria-hidden="true">
+<div class="modal modal-lg fade" id="showProjectModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="selectYearModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content">
-      <div class="modal-header">
+    <div class="modal-content show-card-modal modal-opaque">
+      <!--<div class="modal-header">
         <h5 class="modal-title" id="selectYearModalLabel">Project</h5>
-      </div>
+      </div>-->
       <div id="showProjectModalBody" class="modal-body">
-       
+        
       </div>
       <div class="modal-footer">
         <button id="selectedYearCloseBtn" type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>

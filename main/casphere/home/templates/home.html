@@ -16,7 +16,7 @@
 
       <div id="searchProjectsHeader" class="position-relative">
       
-        <form>
+        <form id="projSearchFrom">
           <div class="d-flex mt-5">
             
             <div class="my-auto me-auto mx-4">
@@ -24,8 +24,9 @@
               <!--<strong class="my-auto">Find Projects</strong> -->
             </div>
       
-            <input type="text" class="form-control mx-2 search-proj-input my-auto" id="searchProjectTitle" placeholder="Search by title">
-            <div class="dropdown"> <!-- The filter dropdown  -->
+            <input name="searchProjectTitle" type="text" class="form-control mx-2 search-proj-input my-auto"  placeholder="Search by title">
+            <!-- The filter dropdown  -->
+            <div class="dropdown">
               <button class="btn btn-secondary dropdown-toggle mx-2 filter-dropdown-btn my-auto" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
                 <i class="fa-solid fa-filter"></i>
               </button>
@@ -40,25 +41,20 @@
                 <hr>
                 <h3>Only show:</h3>
                 <li class="dropdown-item">
-                  <input type="checkbox" id="filterPinned" name="filterPinned">
+                  <input name="searchPinnedCheckbox" type="checkbox" id="filterPinned" name="filterPinned">
                   <label for="filterPinned">Pinned Projects</label>
                 </li>
                 <li class="dropdown-item">
-                  <input type="checkbox" id="filterApproved" name="filterApproved">
+                  <input name="searchApprovedCheckbox" type="checkbox" id="filterApproved" name="filterApproved">
                   <label for="filterApproved">Approved Projects</label>
                 </li>
-                <hr>
-                <div class="d-flex justify-content-end my-2">
-                  <button class="btn btn-secondary mx-2">Clear</button>
-                  <button class="btn btn-primary mx-2">Apply</button>
-                </div>
               </ul>
 
             </div>
 
             <!-- Search Text Field and btn on the right -->
             
-            <button id="searchProjectsButton"  class="btn btn-primary ms-2 me-5 my-auto">Search</button><!-- type="submit"-->
+            <button type="submit" class="btn btn-primary ms-2 me-5 my-auto">Search</button><!-- type="submit"-->
           </div>
         </form>
 

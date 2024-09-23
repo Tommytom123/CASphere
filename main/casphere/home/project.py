@@ -253,24 +253,24 @@ def buildProjectSearchQuery(userInfo, queryParams, overrideLimit):
 
     # Get searching Info    
     whereConstraints = []
-    if (queryParams.get("userOwned",False)):
+    if (queryParams.get("userOwned",False) == True):
         whereConstraints.append("prj.owner_id = %s")
         values.append(userInfo["userId"])
-    if (queryParams.get("userJoined",False)):
+    if (queryParams.get("userJoined",False) == True):
         values.append(userInfo["userId"])
         whereConstraints.append("EXISTS(SELECT * FROM projects_participants as part WHERE part.project_id = prj.id AND part.user_id = %s) = 1")
-    
-    if (queryParams.get("userPinned",False)):
+    if (queryParams.get("onlyPinned",False) == True):
         values.append(userInfo["userId"])
         whereConstraints.append("EXISTS(SELECT * FROM projects_pinned as pin WHERE pin.project_id = prj.id AND pin.user_id = %s) = 1")
+    
     if (queryParams.get("searchTerm",False)):
-        values.append(userInfo["userId"])
-        whereConstraints.append(f"prj.title = {queryParams.get("searchTerm",False)}")
+        values.append(f"%{queryParams['searchTerm']}%") #Format to use the mysql like % symbol (regardless of char before/after % symbol)
+        whereConstraints.append("prj.title LIKE %s")
     
     if (queryParams.get("onlyApproved",False)):
-       None
+        None
     if (queryParams.get("onlyApproved",False)):
-       None
+        None
     
     # Limits, offset and ordering by rank-
     limit = "" if overrideLimit else f"LIMIT {queryParams.get('after',0)}, {queryParams['limit'] if queryParams.get('limit',globalMaxRequestProjectsLimit) < globalMaxRequestProjectsLimit else globalMaxRequestProjectsLimit}"
@@ -284,7 +284,7 @@ def getProjects(userInfo, queryParams, overrideLimit = False):
     query, colNames, colTypes, values = buildProjectSearchQuery(userInfo, queryParams, overrideLimit)
     queryResponse = executeQuery(query, values)
     if queryResponse.get("error", False):
-         raise Exception("Error executing query")
+        raise Exception("Error executing query")
     projectObjs = []
     for projRow in queryResponse["data"]:
         projectObjs.append(buildProjectObject(projRow, colNames, colTypes))
@@ -347,4 +347,3 @@ def projectAction(sessionKey, action, projectId):
                 return deleteProject(userInfo, projectId)
     except:
         return {}, 500
- 

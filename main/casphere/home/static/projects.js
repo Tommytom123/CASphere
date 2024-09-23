@@ -44,7 +44,7 @@ class ProjectSet{ // Not technically a set, really a separate object which store
         this.admin = (accessLevel == 'admin')
 
         //Initializing the main display
-        this.projectScroll = new ProjectScrollDisplay(this, 'projectScrollContainer', 'searchProjectsButton')
+        this.projectScroll = new ProjectScrollDisplay(this, 'projectScrollContainer', 'projSearchFrom')
 
         //Initializing the sidebar tables
         this.ownedProjectsTable = new ProjectsOwnedTable(this, 'ownedProjectsTable')
@@ -304,11 +304,11 @@ class Project {
 
 // "Extensions" from ProjectSet. Not really extensions, but take core projectSet data
 class ProjectScrollDisplay{
-    constructor(projectSet, containerId, searchBtnId){
+    constructor(projectSet, containerId, searchFormId){
         this.projectSet = projectSet  // Since the project set is passed as an object, it works as a pointer to the projectSet object. Any changes made will thus reflect in the original object instance
         this.loadedProjectIds = new Set() // This is an array of the project keys (referencing projectSet) which are loaded to show for this specific display
         this.containerId = containerId
-        this.searchBtnId = searchBtnId
+        this.searchForm = document.getElementById(searchFormId)
         
         this.scrollDiv = document.createElement('div');
         this.scrollDiv.id = "projectsScrollBody"
@@ -317,14 +317,19 @@ class ProjectScrollDisplay{
         this.scrollDivTerminatorDiv = document.createElement('div');
         this.scrollDivTerminatorDiv.id = "ProjectsScrollTerminator"
         this.scrollDivTerminatorDiv.classList.add("d-flex","flex-column","align-items-center")
-        //this.loadScrollDivTerminator()
+        this.loadScrollDivTerminator()
 
         $(`#${this.containerId}`).append(this.scrollDiv)
         $(`#${this.containerId}`).append(this.scrollDivTerminatorDiv)
 
-        // Initialize searching btn
-        $(`#${this.searchBtnId}`).on("click",(event)=>{
-            this.onSearch()
+        // Initialize searching form
+        this.searchForm.reset() //reset and clear all values
+
+        var searchBtn = this.searchForm.querySelector('button[type=submit]');
+        console.log(searchBtn)
+        searchBtn.addEventListener("click",(event)=>{
+            this.onSearch() // Since run in an arrow function, this does not reference to the element which is clicked, instead the object            //event.preventDefault()
+            event.preventDefault()
         })
 
         //Scrolling logic
@@ -355,6 +360,7 @@ class ProjectScrollDisplay{
         
         
         // Load the first batch of objects
+        this.readyToLoadProjects = true
         this.fetchNewProjects()
     }
 
@@ -379,7 +385,34 @@ class ProjectScrollDisplay{
         
     }
 
-    loadScrollDivTerminator() {
+    loadScrollDivTerminator(type) {
+        switch (type){
+            case "ERROR":
+                this.scrollDivTerminatorDiv.innerHTML = `INTERNAL SERVER ERROR`
+                break
+            case "allRead":
+                this.scrollDivTerminatorDiv.innerHTML = `
+                <div class="d-flex justify-content-center text-center mt-3 mb-5">
+                    All Projects loaded
+                </div>
+                `
+                break
+            case "noneRead":
+                this.scrollDivTerminatorDiv.innerHTML = `
+                <div class="d-flex justify-content-center text-center mt-3 mb-5">
+                    No projects match the search criteria
+                </div>
+                `
+                break
+            default:
+                this.scrollDivTerminatorDiv.innerHTML = `
+                <div class="d-flex justify-content-center my-4">
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+                `
+        }
     }
 
     clearAllProjects(){ // Removes all objects in this display, and 
@@ -387,47 +420,56 @@ class ProjectScrollDisplay{
             this.projectSet.projectSet[projId].removeVisualization(this.containerId)     
         })
         this.loadedProjectIds.clear()
+        $("#scrollToTopBtn").hide()
+        this.readyToLoadProjects = true
     }
     
-    async fetchNewProjects(searchParams = {}){
-        console.log(this.loadedProjectIds.size)
-        var params = {
-            "after": this.loadedProjectIds.size
-        }
-        Object.assign(params,searchParams)
+    async fetchNewProjects(){
+        if (this.readyToLoadProjects){
+            this.readyToLoadProjects = false
+            
+            var params = {
+                "after": this.loadedProjectIds.size
+            }
+            Object.assign(params, this.getSearchFormValues())
+            var responseObj = await fetchPostWrapper("/getProjects", params)
+            console.log(responseObj)
+            if (errorStatusList.includes(responseObj)){
+                this.allProjectsRead = true
+                this.loadScrollDivTerminator("ERROR")
+                return
+            } else if  (responseObj.projects.length == 0 && this.loadedProjectIds.size == 0) {
+                this.allProjectsRead = true
+                this.loadScrollDivTerminator("noneRead")
+            } else if (responseObj.projects.length < 8 ){ // All projects have been read. This value is < the max value set serverside, or what is to be passed as the "limit": val in `params`
+                this.allProjectsRead = true
+                this.loadScrollDivTerminator("allRead")
+            }
+            responseObj.projects.forEach((project) => {
+                this.loadedProjectIds.add(project.id)
+                var projObj = this.projectSet.addProject(project) // Adds new entry to key/value mapping if doesn't exist - otherwise overwrites old one
+                this.scrollDiv.append(projObj.getCardDiv(this.containerId))
+            })
 
-        var responseObj = await fetchPostWrapper("/getProjects", params)
-        console.log(responseObj)
-        /*
-        if (errorStatusList.includes(responseObj)){
-            this.scrollDivTerminatorDiv.innerHTML = `INTERNAL SERVER ERROR`
-            this.allProjectsRead = true
-            return
+            this.readyToLoadProjects = true
+            
         }
-
-        if (responseObj.projects.length == 0){ // All projects have been read
-            this.allProjectsRead = true
-            this.loadScrollDivTerminator()
-        } else { */
-        responseObj.projects.forEach((project) => {
-            this.loadedProjectIds.add(project.id)
-            var projObj = this.projectSet.addProject(project) // Adds new entry to key/value mapping if doesn't exist - otherwise overwrites old one
-            this.scrollDiv.append(projObj.getCardDiv(this.containerId))
-        })
-        //this.scrollDiv.append('test')
-        //}
-        
     }
 
     onSearch(){
         this.clearAllProjects()
-        this.fetchNewProjects({
-            "searchTerm": 'Title',
-            "afterDate": undefined, 
-            "beforeDate": undefined,
-            "onlApproved": false,
-            "userPinned": false
-        })
+        console.log(this.searchForm.querySelector('input[name="searchPinnedCheckbox"]').checked)
+        this.fetchNewProjects()
+    }
+
+    getSearchFormValues(){
+        return {
+            "searchTerm": this.searchForm.querySelector('input[name="searchProjectTitle"]').value,
+            "afterDate": undefined, //searchForm.querySelector('button[type=submit]'),
+            "beforeDate": undefined, //searchForm.querySelector('button[type=submit]'),
+            "onlyApproved": this.searchForm.querySelector('input[name="searchApprovedCheckbox"]').checked,
+            "onlyPinned": this.searchForm.querySelector('input[name="searchPinnedCheckbox"]').checked
+        }
     }
 }
 
@@ -467,7 +509,9 @@ class ProjectTable{
             }
             if (this.tableContainer.children[i].children[columnIdx[0]].innerHTML == elementToInsert.children[columnIdx[0]].innerHTML && sameValStartIdx == null){sameValStartIdx = i}
         }
-        if (sameValStartIdx != null){
+        if (columnIdx.length == 1){
+            return this.tableContainer.children[range[1]]
+        } else if (sameValStartIdx != null){
             columnIdx.shift()
             return this.getSortedInsertLoc(elementToInsert, columnIdx, [sameValStartIdx, range[1]])
         } else {
@@ -477,7 +521,6 @@ class ProjectTable{
 
     addToTable(projObj, columnSortIdx = [1,0]){ // ColumnSortIdx is a queue
         var tableElement = projObj.getTableElement(this.tableContainerId)
-
         // Find where to place the new element (Since the table is sorted by date)
         var insertBeforeElement = this.getSortedInsertLoc(tableElement, columnSortIdx)
 
@@ -505,7 +548,7 @@ class ProjectsOwnedTable extends ProjectTable{
         console.log(responseObj)
         responseObj.projects.forEach((project) => {
             var projObj = this.projectSet.addProject(project)
-            this.tableContainer.append(projObj.getTableElement(this.tableContainerId))  
+            this.addToTable(projObj)  
         })
         //}
         
@@ -525,7 +568,7 @@ class ProjectsJoinedTable extends ProjectTable{
         console.log(responseObj)
         responseObj.projects.forEach((project) => {
             var projObj = this.projectSet.addProject(project)
-            this.tableContainer.append(projObj.getTableElement(this.tableContainerId))  
+            this.addToTable(projObj)    
         })
     }
 }

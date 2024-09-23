@@ -35,7 +35,6 @@ def filterValues(values):
 
         else: # If int or other datatype that doesn't need replacing -> Base case
             return values
-           
     except Exception as err:
         print(err)
         return None

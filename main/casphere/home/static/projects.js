@@ -44,7 +44,7 @@ class ProjectSet{ // Not technically a set, really a separate object which store
         this.admin = (accessLevel == 'admin')
 
         //Initializing the main display
-        this.projectScroll = new ProjectScrollDisplay(this, 'projectScrollContainer')
+        this.projectScroll = new ProjectScrollDisplay(this, 'projectScrollContainer', 'searchProjectsButton')
 
         //Initializing the sidebar tables
         this.ownedProjectsTable = new ProjectsOwnedTable(this, 'ownedProjectsTable')
@@ -59,10 +59,35 @@ class ProjectSet{ // Not technically a set, really a separate object which store
             return this.projectSet[project.id]
         }
     }
+
+    updateAllProjects(){ // Every 15 seconds sends a request to update all projects with their core "updatable details" eg. the number of participants so we don't get too many participants
+        if (this.projectSet.length > 0) {
+            var fieldsToUpdate = [""]
+            var responseJson = fetchPostWrapper("/",{
+                "fieldsToUpdate": fieldsToUpdate,
+                "projectIdsToUpdate": Object.keys(this.projectSet)
+            })
+            /*
+            responseJson = {
+                updatedProjects: {
+                    1:{
+                        FIELD: value,
+                        field: value
+                    }
+                }
+            }
+            */
+            Object.keys(responseJson.updatedProjects).forEach((projectKey) => {
+                Object.keys(responseJson.updatedProjects[projectKey]).forEach((field)=>{ // Update the old values with the new
+                    this.projectSet[projectKey].projectDetails[field] = responseJson.updatedProjects[projectKey][field]
+                })
+                this.projectSet[projectKey].updateAllProjectInstances() // Refresh all the respective views
+            })
+        }
+    }
 }
 
 // A single project item
-
 class ProjectCardVisualization{ // The same project can be shown in multiple locations at once, but we want them to be linked together.
     constructor(baseProjectObj){
         this.baseProjectObj = baseProjectObj
@@ -166,6 +191,12 @@ class ProjectCardVisualization{ // The same project can be shown in multiple loc
     removeFromPage() {
         this.projectDiv.remove()
     }
+
+    delete(){
+        this.projectDiv.remove()
+        delete this.projectDiv
+        delete this
+    }
 }
 
 class ProjectTableRowVisualization{ // The same project can be shown in multiple locations at once, but we want them to be linked together.
@@ -196,6 +227,12 @@ class ProjectTableRowVisualization{ // The same project can be shown in multiple
     removeFromPage() {
         this.rowElement.remove()
     }
+
+    delete(){
+        this.rowElement.remove()
+        delete this.rowElement
+        delete this
+    }
 }
 
 class Project {
@@ -223,6 +260,11 @@ class Project {
             this.activeVisualizations[id] = new ProjectTableRowVisualization(this)
             return this.activeVisualizations[id].loadHTML()
         }
+    }
+
+    removeVisualization(id){
+        this.activeVisualizations[id].delete()
+        delete this.activeVisualizations[id]
     }
 
     updateAllProjectInstances(){
@@ -260,15 +302,13 @@ class Project {
     
 }
 
-
-
 // "Extensions" from ProjectSet. Not really extensions, but take core projectSet data
-
 class ProjectScrollDisplay{
-    constructor(projectSet, containerId){
+    constructor(projectSet, containerId, searchBtnId){
         this.projectSet = projectSet  // Since the project set is passed as an object, it works as a pointer to the projectSet object. Any changes made will thus reflect in the original object instance
         this.loadedProjectIds = new Set() // This is an array of the project keys (referencing projectSet) which are loaded to show for this specific display
         this.containerId = containerId
+        this.searchBtnId = searchBtnId
         
         this.scrollDiv = document.createElement('div');
         this.scrollDiv.id = "projectsScrollBody"
@@ -281,6 +321,11 @@ class ProjectScrollDisplay{
 
         $(`#${this.containerId}`).append(this.scrollDiv)
         $(`#${this.containerId}`).append(this.scrollDivTerminatorDiv)
+
+        // Initialize searching btn
+        $(`#${this.searchBtnId}`).on("click",(event)=>{
+            this.onSearch()
+        })
 
         //Scrolling logic
         this.prevLowestScrollPos = 0 //Based on scrollTop
@@ -307,6 +352,7 @@ class ProjectScrollDisplay{
         $("#scrollToTopBtn").on("click", (event)=>{
             this.scrollToTop()
         })
+        
         
         // Load the first batch of objects
         this.fetchNewProjects()
@@ -336,13 +382,20 @@ class ProjectScrollDisplay{
     loadScrollDivTerminator() {
     }
 
-    async removeAllProjects(){
+    clearAllProjects(){ // Removes all objects in this display, and 
+        this.loadedProjectIds.forEach((projId) =>{
+            this.projectSet.projectSet[projId].removeVisualization(this.containerId)     
+        })
+        this.loadedProjectIds.clear()
     }
     
-    async fetchNewProjects(){
+    async fetchNewProjects(searchParams = {}){
+        console.log(this.loadedProjectIds.size)
         var params = {
-            "after": this.scrollDiv.children.length
+            "after": this.loadedProjectIds.size
         }
+        Object.assign(params,searchParams)
+
         var responseObj = await fetchPostWrapper("/getProjects", params)
         console.log(responseObj)
         /*
@@ -357,12 +410,24 @@ class ProjectScrollDisplay{
             this.loadScrollDivTerminator()
         } else { */
         responseObj.projects.forEach((project) => {
-
+            this.loadedProjectIds.add(project.id)
             var projObj = this.projectSet.addProject(project) // Adds new entry to key/value mapping if doesn't exist - otherwise overwrites old one
             this.scrollDiv.append(projObj.getCardDiv(this.containerId))
         })
+        //this.scrollDiv.append('test')
         //}
         
+    }
+
+    onSearch(){
+        this.clearAllProjects()
+        this.fetchNewProjects({
+            "searchTerm": 'Title',
+            "afterDate": undefined, 
+            "beforeDate": undefined,
+            "onlApproved": false,
+            "userPinned": false
+        })
     }
 }
 

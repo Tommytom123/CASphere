@@ -259,7 +259,18 @@ def buildProjectSearchQuery(userInfo, queryParams, overrideLimit):
     if (queryParams.get("userJoined",False)):
         values.append(userInfo["userId"])
         whereConstraints.append("EXISTS(SELECT * FROM projects_participants as part WHERE part.project_id = prj.id AND part.user_id = %s) = 1")
-
+    
+    if (queryParams.get("userPinned",False)):
+        values.append(userInfo["userId"])
+        whereConstraints.append("EXISTS(SELECT * FROM projects_pinned as pin WHERE pin.project_id = prj.id AND pin.user_id = %s) = 1")
+    if (queryParams.get("searchTerm",False)):
+        values.append(userInfo["userId"])
+        whereConstraints.append(f"prj.title = {queryParams.get("searchTerm",False)}")
+    
+    if (queryParams.get("onlyApproved",False)):
+       None
+    if (queryParams.get("onlyApproved",False)):
+       None
     
     # Limits, offset and ordering by rank-
     limit = "" if overrideLimit else f"LIMIT {queryParams.get('after',0)}, {queryParams['limit'] if queryParams.get('limit',globalMaxRequestProjectsLimit) < globalMaxRequestProjectsLimit else globalMaxRequestProjectsLimit}"
@@ -336,5 +347,4 @@ def projectAction(sessionKey, action, projectId):
                 return deleteProject(userInfo, projectId)
     except:
         return {}, 500
-
-
+ 

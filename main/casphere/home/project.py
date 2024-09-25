@@ -98,8 +98,9 @@ globalProjectStructure = {
             'valType': 'int',
             'formFieldName': 'maxParticipantsInput'
         },
-        'approved_by_id':{
-            'dbColRead':'prj.approved_by_id'
+        'approved':{
+            'dbColRead':'if(prj.approved_by_id IS NOT NULL, 1, 0)',
+            'valType': 'int'
         },
         'pinned':{
             'dbColRead':'EXISTS(SELECT * FROM projects_pinned as pin WHERE pin.project_id = prj.id AND pin.user_id = %s) as pinned',
@@ -303,29 +304,41 @@ def getUserJoinedProjects(userInfo, queryParams):
 # -- Further project based actions --
 # These functions are called by the main projectAction() function. 
 
-def pinProject(userObj, projectId):
+def pinProject(userInfo, projectId):
     # Adding to pinned projects table with a link to the userId and Project ID
     # Duplicate entries will not occur due to the UNIQUE constraint set in the DB, and the ignore clause in the query
     #https://www.w3schools.com/mysql/mysql_unique.asp    
-    queryResponse = executeQuery("INSERT INTO projects_pinned (user_id, project_id) VALUES (%s, %s)", [userObj['userId'], projectId])
+    queryResponse = executeQuery("INSERT INTO projects_pinned (user_id, project_id) VALUES (%s, %s)", [userInfo['userId'], projectId])
     return {'pinned': True}, 200
 
-def unPinProject(userObj, projectId):
-    queryResponse = executeQuery("DELETE FROM projects_pinned WHERE user_id = %s AND project_id = %s", [userObj['userId'], projectId])
+def unPinProject(userInfo, projectId):
+    queryResponse = executeQuery("DELETE FROM projects_pinned WHERE user_id = %s AND project_id = %s", [userInfo['userId'], projectId])
     return {'pinned': False}, 200
 
-def joinProject(userObj, projectId):
-    queryResponse = executeQuery("INSERT INTO projects_participants (user_id, project_id) VALUES (%s, %s)", [userObj['userId'], projectId])
+def joinProject(userInfo, projectId):
+    queryResponse = executeQuery("INSERT INTO projects_participants (user_id, project_id) VALUES (%s, %s)", [userInfo['userId'], projectId])
     return {'joined': True}, 200
 
-def leaveProject(userObj, projectId):
-    queryResponse = executeQuery("DELETE FROM projects_participants WHERE user_id = %s AND project_id = %s", [userObj['userId'], projectId])
+def leaveProject(userInfo, projectId):
+    queryResponse = executeQuery("DELETE FROM projects_participants WHERE user_id = %s AND project_id = %s", [userInfo['userId'], projectId])
     return {'joined': False}, 200
 
-def approveProject(userObj, projectId):
+def approveProject(userInfo, projectId):
+    if (userInfo['accessLevel'] == 'admin'):
+        queryResponse = executeQuery("UPDATE projects SET approved_by_id = %s WHERE id = %s", [userInfo['userId'], projectId])
+        return {'approved': True}, 200
     return
 
-def deleteProject(userObj, projectId):
+def unApproveProject(userInfo, projectId):
+    if (userInfo['accessLevel'] == 'admin'):
+        queryResponse = executeQuery("UPDATE projects SET approved_by_id = NULL WHERE id = %s", [projectId])
+        return {'approved': False}, 200
+    return
+
+def deleteProject(userInfo, projectId):
+    if (userInfo['accessLevel'] == 'admin'):
+        queryResponse = executeQuery("UPDATE projects SET deleted = 1 WHERE id = %s", [projectId])
+        return {'deleted': True}, 200
     return 
 
 def projectAction(sessionKey, action, projectId):
@@ -343,6 +356,8 @@ def projectAction(sessionKey, action, projectId):
             # Req admin priveliges
             case 'approve':
                 return approveProject(userInfo, projectId)
+            case 'unapprove':
+                return unApproveProject(userInfo, projectId)
             case 'delete':
                 return deleteProject(userInfo, projectId)
     except:

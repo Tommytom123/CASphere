@@ -45,12 +45,9 @@ function parseIsoDate(dateStr){ //Year-Month-Day
 
 // Facilitates strings, dates 
 function isGreaterThan(a,b){
-  console.log(`A:${a} | B:${b} |dateA:${Date.parse(a)} | dateA:${Date.parse(b)}`)
   if (parseIsoDate(a) && parseIsoDate(b)){
-    console.log(parseIsoDate(a) > parseIsoDate(b))
     return parseIsoDate(a) > parseIsoDate(b)
   } 
-  console.log(a>b)
   return a > b
 }
 

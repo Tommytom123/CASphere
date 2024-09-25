@@ -50,8 +50,9 @@ def loginCallback():
 
 @login_bp.route("/logout", methods=['GET'])
 def logout():
-    deleteSession(session["TOKEN"])
-    return render_template("login.html")
+    if (session.get('TOKEN',None) != None):
+        deleteSession(session["TOKEN"])
+    return redirect("/login")
 
 
 

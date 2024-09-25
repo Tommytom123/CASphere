@@ -96,16 +96,25 @@ class ProjectCardVisualization{ // The same project can be shown in multiple loc
         this.projectDiv = document.createElement('div');
 
         this.projectDiv.classList.add("card", "project-card", "mt-2", "mb-2", this.baseProjectObj.projectDetails.strand.toLowerCase())
-        var joinOrApproveDelBtn = this.baseProjectObj.showAsAdmin ? '<div class="d-flex justify-content-between"> <button type="button" class="btn btn-danger ms-2 proj-admin-btn proj-delete-btn">Delete</button> <button type="button" class="btn btn-primary me-2 proj-admin-btn proj-approve-btn">Approve</button></div>' : '<button type="button" class="btn btn-primary w-100 proj-join-btn">Join Project</button>'
-        
+        var joinOrApproveDelBtn = this.baseProjectObj.parentSet.admin ? `
+            <div class="d-flex justify-content-between"> 
+                <button type="button" class="btn btn-danger ms-2 proj-admin-btn proj-delete-btn">Delete</button> 
+                <button type="button" class="btn btn-primary me-2 proj-admin-btn proj-approve-btn">Approve</button>
+            </div>
+        ` : `
+            <button type="button" class="btn btn-primary w-100 proj-join-btn">Join Project</button>
+            `
+                    
         this.projectDiv.innerHTML = `
             <div class="card-body container">
                 <div class="row">
                 <div class="col-8">
                     <h5 class="card-title">
-                    <div class="d-flex justify-content-between project-heading mb-1">
+                    <div class="d-flex project-heading mb-1">
+                        <i class="fa-solid fa-circle-check proj-approved-icon me-3" ${this.baseProjectObj.projectDetails.approved ? "hidden" : ""}></i>
                         <span class="">${this.baseProjectObj.projectDetails.title}</span>
-                        <i class="fa-solid fa-thumbtack proj-pin-btn"></i>
+
+                        <i class="fa-solid ms-auto fa-thumbtack proj-pin-btn"></i>
                     </div>
                     
                     <hr class="proj-line-break">
@@ -142,16 +151,22 @@ class ProjectCardVisualization{ // The same project can be shown in multiple loc
             this.projDeleteBtn = this.projectDiv.getElementsByClassName(`proj-delete-btn`)[0]
             this.projApproveBtn = this.projectDiv.getElementsByClassName(`proj-approve-btn`)[0]
             this.projJoinBtn = this.projectDiv.getElementsByClassName(`proj-join-btn`)[0]
-
+            this.projApprovedIcon = this.projectDiv.getElementsByClassName(`proj-approved-icon`)[0]
 
             // Setting up eventlistners
             this.projPinBtn.addEventListener("click", ()=>{
                 this.baseProjectObj.projectAction(this.baseProjectObj.projectDetails.pinned ? 'unpin' : 'pin') // Has a {key:value pair of the new value for  this.projectDetails}
             })
             
-            if (this.showAsAdmin){
-                this.projApproveBtn.addEventListener("click", ()=>{console.log(`Approve: ${this.baseProjectObj.projectDetails.title}, ${this.projectDetails.id}`)})
-                this.projDeleteBtn.addEventListener("click", ()=>{console.log(`delete: ${this.baseProjectObj.projectDetails.title}, ${this.projectDetails.id}`)})
+            if (this.baseProjectObj.parentSet.admin){
+                this.projApproveBtn.addEventListener("click", ()=>{
+                    console.log('approve')
+                    this.baseProjectObj.projectAction(this.baseProjectObj.projectDetails.approved == true ? 'unapprove' : 'approve')
+                    })
+                this.projDeleteBtn.addEventListener("click", ()=>{
+                    console.log('delete')
+                    this.baseProjectObj.projectAction('delete')
+                })
             }else{
                 this.projJoinBtn.addEventListener("click", ()=>{
                     this.baseProjectObj.projectAction(this.baseProjectObj.projectDetails.joined ? 'leave' : 'join')
@@ -160,12 +175,24 @@ class ProjectCardVisualization{ // The same project can be shown in multiple loc
     }
 
     updateInstance() { // Updates card based on the baseProjectObj details (Which is shared between all visualizations). This only updates the VISUAL ELEMENTS -> Not if it should be appended/removed from other tables
+        // Instances that show for both student/admin
+        if (this.baseProjectObj.projectDetails.deleted){
+            //this.baseProjectObj.delete()
+        }
+
         if (this.baseProjectObj.projectDetails.pinned){ // Pinned
             this.projPinBtn.classList.add('selected')
         } else {
             this.projPinBtn.classList.remove('selected')
         }
-        if (this.baseProjectObj.showAsAdmin){ // Admin
+        
+        if (this.baseProjectObj.projectDetails.approved){
+            this.projApprovedIcon.hidden = false
+        } else {
+            this.projApprovedIcon.hidden = true
+        }
+        // Seperate instances specifically per user
+        if (this.baseProjectObj.parentSet.admin){ // Admin
 
         } else { // Student
             if (this.baseProjectObj.projectDetails.joined){
@@ -236,10 +263,9 @@ class ProjectTableRowVisualization{ // The same project can be shown in multiple
 }
 
 class Project {
-    constructor(parentSet, projectDetailsJson, admin = false){
+    constructor(parentSet, projectDetailsJson){
         this.parentSet = parentSet
         this.projectDetails = projectDetailsJson
-        this.showAsAdmin = admin
         this.activeVisualizations = {} // Dictionary of all the visualizations. Its key is referencing to the container the project is displayed in (Since in the individual container there cant be any duplicate elements)
     }
 
@@ -283,7 +309,7 @@ class Project {
     // Core events
     async projectAction(action){
         var responseJson = await fetchPostWrapper('/projectAction', {
-            action: action,
+            action: action, 
             projectId: this.projectDetails.id
         })
         // If an error, the responseJson will be an error int. Else it will be an key/value pair with the new values

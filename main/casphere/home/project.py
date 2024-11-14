@@ -1,8 +1,15 @@
 from ..globalConfig import *
+from ..globalSecrets import *
 from ..core.SQL import executeQuery
-from ..core.general import flattenArray, getSqlPlaceholders, formatDateTime, indexOf
+from ..core.general import flattenArray, getSqlPlaceholders, formatDateTime, indexOf, replaceStringChars
 from ..core.sessions import getUserInfoFromSessionToken
+from ..core.emails import sendEmails, getAllEmailAddresses
+from casphere import app
+from werkzeug.utils import secure_filename
+import base64
+import secrets
 import datetime as dt
+import os
 
 globalMaxRequestProjectsLimit = 8 # Maximum number of projects which can be requested at a time
 projectRankingFormulae = '(prj.id) AS ranking' #IF(prj.approved_by_id is not null, 100,0) + day(prj.date_start)
@@ -39,12 +46,12 @@ globalProjectStructure = {
             'valType': 'date',
             'formFieldName': 'addProjectEndDate'
         },
-        #'img':{
-        #    'dbColRead':'prj.image',
-        #    'dbColInsert':'image',
-        #    'valType': 'img', # What is inserted into the DB is a random Gen of the 
-        #    'formFieldName': ''
-        #},
+        'img':{
+            'dbColRead':'prj.image',
+            'dbColInsert':'image',
+            'valType': 'img', # What is inserted into the DB is a random Gen of the 
+            'formFieldName': ''
+        },
         'participantLim':{
             'dbColRead':'prj.participant_limit',
             'dbColInsert':'participant_limit',
@@ -60,7 +67,7 @@ globalProjectStructure = {
             'dbColRead':'prj.years',
             'dbColInsert':'years',
             'valType': 'multiSelect',
-            'formFieldName': ["yearGroupCheckbox_1","yearGroupCheckbox_2","yearGroupCheckbox_3","yearGroupCheckbox_4","yearGroupCheckbox_5"]
+            'formFieldName': [["yearGroupCheckbox_1",'Y9'],["yearGroupCheckbox_2",'Y10'],["yearGroupCheckbox_3",'Y11'],["yearGroupCheckbox_4",'Y12'],["yearGroupCheckbox_5",'Y13']] # checkbox name, value to be stored if selected/'on'
         },
         'location':{
             'dbColRead':'prj.location',
@@ -88,9 +95,13 @@ globalProjectStructure = {
             'valType': 'date',
             'default': lambda : formatDateTime(dt.datetime.now())
         },
-        'participants':{
-            'dbColRead':'(SELECT GROUP_CONCAT(prt.participants) as participants FROM project_participants AS prt ON prt.project_id = prj.id GROUP BY prj.id)',
-
+       # 'participants':{
+       #     'dbColRead':'(SELECT GROUP_CONCAT(prt.participants) as participants FROM project_participants AS prt ON prt.project_id = prj.id GROUP BY prj.id)',
+       #     'valType': 'int'
+       # },
+        'participantCount':{
+            'dbColRead':'prj_part.participant_count',
+            'valType': 'int'
         },
         'maxParticipants':{
             'dbColRead':'prj.max_participant_count',
@@ -116,11 +127,12 @@ globalProjectStructure = {
 
     },
     'joins':[
-        'LEFT JOIN users AS own ON prj.owner_id = own.id'
+        'LEFT JOIN users AS own ON prj.owner_id = own.id',
+        'left join (select project_id, count(*) as participant_count from projects_participants group by project_id) as prj_part on prj.id = prj_part.project_id'
     ]
 }
 
-# Check user acess level
+# Check user access level
 def checkAccessLevel(userSessionToken, action): # Still needs to be implemented
     return True
 
@@ -131,13 +143,15 @@ def formatFormValues(field, form, files):
         case 'radioBtn':
             return form[field["formFieldName"]]
         case 'multiSelect': # The multiselect returns each checkbox as a seperate field if checked in the form values
-            selected = ''
+            selected = []
             for select in field['formFieldName']:
-                if (form.get(select, False) != False):
-                    select += form[select]
-            return selected
+                
+                if (form.get(select[0], False) != False):
+                    selected.append(select[1])
+            print(selected)
+            return ','.join(selected)
         case 'img':
-            return 'image'
+            return uploadImage(files['projImg'])
         case _:
             return form.get(field["formFieldName"], None)
         
@@ -147,7 +161,7 @@ def getQueryColumnsValues(userSessionToken, form, files):
     values = []
     for Token, field in globalProjectStructure['fields'].items():
         try:
-            if (field.get("valType",False) != False):
+            if (field.get("valType",False) != False and field.get("dbColInsert",False) != False): # If it has a specified type
                 # If the value needs to be inserted into a seperate table (Eg: in a many-many instance)
                     # Not implemented as of yet
                     
@@ -173,11 +187,40 @@ def getQueryColumnsValues(userSessionToken, form, files):
                 # Else, a normal value
                 columns.append(field["dbColInsert"])
                 values.append(formatFormValues(field, form, files))
-        except:
-            print(field)
+        except Exception as err:
+            #print(err)
+            print(f"error{field}")
     return columns, values
 
-#Submitting
+# Takes an image which is to be stored, and stores it into the uploads directory. It returns its unique filename of which is to be stored in the DB
+def uploadImage(img):
+    encodedInfo = replaceStringChars(base64.b64encode(f'{img.filename}{dt.datetime.now().timestamp()}'.encode('ascii')).decode('ascii'), [['+','-'],['/','('],['=',')']]) #Replaces non compatible b64 chars in a url from +/= to -_.
+    secretElement = secrets.token_hex(6)
+    filename = secure_filename(f'{encodedInfo}_{secretElement}.png')
+    try:
+        allowedFormats = {'png', 'jpg', 'jpeg'}
+        if not verifyFileFormat(filename, allowedFormats):
+            return None
+        img.save(os.path.join(f"{app.config['UPLOAD_FOLDER']}{IMAGE_DIRECTORY}", filename))
+
+    except Exception as err:
+        print(err)
+
+    return filename
+
+#Checks if file format is accepted
+def verifyFileFormat(filename, allowedFormats):
+    if filename.split('.')[1] in allowedFormats:
+        return True
+    return False
+
+#formats the image - resizes, changes format, compresses, etc - so it can be efficiently stored
+def formatImage(img):
+    #Add more here if necessary
+    return img
+
+
+# - Function called to submit a project object to the DB -
 def submitProject(userSessionToken, form, files):
     successCode = 401
     if(checkAccessLevel(userSessionToken, "addProject")):
@@ -193,6 +236,7 @@ def submitProject(userSessionToken, form, files):
             successCode = 500
     return successCode
 
+
 # In the project query builder, in the case of a %s, 
 # there is a seperate array 'reqValues' which refers
 # to what this placeholder value is supposed to be
@@ -202,6 +246,7 @@ def getValueFromType(valueType, userInfo):
             return userInfo["userId"]
     return None
         
+
 # Retrieval
 def getReadColumns(userInfo = None, values = None):
     values = [] if values == None else values
@@ -268,8 +313,10 @@ def buildProjectSearchQuery(userInfo, queryParams, overrideLimit):
         values.append(f"%{queryParams['searchTerm']}%") #Format to use the mysql like % symbol (regardless of char before/after % symbol)
         whereConstraints.append("prj.title LIKE %s")
     
-    if (queryParams.get("onlyApproved",False)):
-        None
+    if (queryParams.get("yearGroup",False) != False): #if the yearGroup specified in the params exists
+        values.append(f"%{queryParams['yearGroup']}%") 
+        whereConstraints.append("prj.years LIKE %s")
+    
     if (queryParams.get("onlyApproved",False)):
         None
     
@@ -281,6 +328,7 @@ def buildProjectSearchQuery(userInfo, queryParams, overrideLimit):
     query = f"SELECT {', '.join(dbColumns)} FROM projects AS prj {' '.join(joins)} {'WHERE ' if len(whereConstraints) > 0 else ''}{' AND '.join(whereConstraints)} {orderBy} {limit}"
     return query, colNames, colTypes, values
 
+# - Main function called to get a set of "paged" projects -
 def getProjects(userInfo, queryParams, overrideLimit = False):
     query, colNames, colTypes, values = buildProjectSearchQuery(userInfo, queryParams, overrideLimit)
     queryResponse = executeQuery(query, values)
@@ -293,7 +341,7 @@ def getProjects(userInfo, queryParams, overrideLimit = False):
 
 # Other Variations of getProjects
 
-def getUserOwnedProjects(userInfo, queryParams):
+def getUserOwnedProjects(userInfo, queryParams): 
     queryParams["userOwned"] = True
     return getProjects(userInfo, queryParams, True)
 
@@ -302,7 +350,15 @@ def getUserJoinedProjects(userInfo, queryParams):
     return getProjects(userInfo, queryParams, True)
 
 # -- Further project based actions --
-# These functions are called by the main projectAction() function. 
+def getProjectParticipantCount(projectId):
+    #try:
+    queryResponse = executeQuery("SELECT count(*) as participant_count FROM projects_participants as pp WHERE pp.project_id = %s", [projectId])
+    participantCount = queryResponse['data'][0][0]
+    #except:
+    #    participantCount = 0
+    return participantCount
+
+# These functions are called by the main projectAction() function (below). 
 
 def pinProject(userInfo, projectId):
     # Adding to pinned projects table with a link to the userId and Project ID
@@ -316,30 +372,45 @@ def unPinProject(userInfo, projectId):
     return {'pinned': False}, 200
 
 def joinProject(userInfo, projectId):
+    #check if space still available in project
+
     queryResponse = executeQuery("INSERT INTO projects_participants (user_id, project_id) VALUES (%s, %s)", [userInfo['userId'], projectId])
-    return {'joined': True}, 200
+    participantCount = getProjectParticipantCount(projectId)
+    return {'joined': True, "participantCount": participantCount}, 200
 
 def leaveProject(userInfo, projectId):
     queryResponse = executeQuery("DELETE FROM projects_participants WHERE user_id = %s AND project_id = %s", [userInfo['userId'], projectId])
-    return {'joined': False}, 200
+    participantCount = getProjectParticipantCount(projectId)
+    return {'joined': False, "participantCount": participantCount}, 200
 
 def approveProject(userInfo, projectId):
     if (userInfo['accessLevel'] == 'admin'):
         queryResponse = executeQuery("UPDATE projects SET approved_by_id = %s WHERE id = %s", [userInfo['userId'], projectId])
         return {'approved': True}, 200
-    return
+    return {}, 401
 
 def unApproveProject(userInfo, projectId):
     if (userInfo['accessLevel'] == 'admin'):
         queryResponse = executeQuery("UPDATE projects SET approved_by_id = NULL WHERE id = %s", [projectId])
         return {'approved': False}, 200
-    return
+    return {}, 401
 
 def deleteProject(userInfo, projectId):
     if (userInfo['accessLevel'] == 'admin'):
         queryResponse = executeQuery("UPDATE projects SET deleted = 1 WHERE id = %s", [projectId])
         return {'deleted': True}, 200
-    return 
+    return {}, 401
+
+def emailUsersOnProject(userInfo, projectId):
+    if (userInfo['accessLevel'] == 'admin'):
+        userEmails = getAllEmailAddresses(['student'])
+        projectDetails = executeQuery("SELECT * FROM projects WHERE project_id = ?", [projectId])
+        emailBody = f"""
+JOIN CAS PROJECT {projectDetails}
+
+"""        
+        sendEmails
+    return {}, 401
 
 def projectAction(sessionKey, action, projectId):
     try:
@@ -360,5 +431,6 @@ def projectAction(sessionKey, action, projectId):
                 return unApproveProject(userInfo, projectId)
             case 'delete':
                 return deleteProject(userInfo, projectId)
-    except:
+    except Exception as error:
+        print(error)
         return {}, 500

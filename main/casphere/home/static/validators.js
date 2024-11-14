@@ -12,14 +12,15 @@ function onLoadValidators(){
     //Prevent the default submit system of forms so they pass through their respective submit functions without redirecting the page
     var forms = document.querySelectorAll('form');
     for (var i = 0; i < forms.length; i++) {
-      forms[i].addEventListener('submit', (event) => {
-        event.preventDefault();
-        switch (event.currentTarget.id) {
-            case "addProjectForm":
-                addProjectSubmit(event.currentTarget)
-                break
-        }
-      });
+        forms[i].addEventListener('submit', (event) => {
+            event.preventDefault();
+            switch (event.currentTarget.id) {
+                case "addProjectForm":
+                    addProjectSubmit(event.currentTarget)
+                    break
+                //for more forms add more switch cases
+            }   
+        });
     }
     
 }

@@ -249,6 +249,9 @@ input[type=number] {
   border-left: 10px solid transparent;
 }
   
+.project-location-map {
+  font-size: 35px;
+}
 
 .proj-pin-btn {
 color: grey;
@@ -265,7 +268,12 @@ color: black;
   color: rgb(58, 58, 58);
 }
 
-  
+.project-location-row * {
+  font-size:12px;
+  margin-top:0px;
+  height:18px;
+  max-width: 60px;
+}
 
 .project-subheading * {
 font-size:12px;

@@ -3,17 +3,11 @@
 # Global variables file specific -> camelcase with leading "global" 
 # Other variables -> camelcase
 
-FLASK_SECRET = "0jkh43789thpq9hugvbuitft578yaerfuphhufp"
-
-# Google OAuth Secrets
-CLIENT_ID = '300028427783-2mnga77mhs3dcrl36rmsk8to8bc9dk0v.apps.googleusercontent.com'
-CLIENT_SECRET = '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'
-
 #Session details
 SESSION_LIFETIME = 48 #In Hours
 
-# Image base diretory (In same folder as main.py (one folder up as this file))
-IMAGE_DIRECTORY = "/img_uploads"
+# Image base diretory relative to the upload directory
+IMAGE_DIRECTORY = "/img/projects"
 
 
 # -- Hardcoded on the frontend

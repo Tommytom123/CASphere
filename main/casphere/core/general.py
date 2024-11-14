@@ -28,3 +28,9 @@ def indexOf(arr, val):
         if arr[i] == val:
             return i
     return -1 #Doesn't exist. We can't return false -> Since python != or == does not do strict type matching (like in js), as when checking if it exists and idx of 0 would == False
+
+# Replaces
+def replaceStringChars(str, toReplaceArr):
+    for replaceItems in toReplaceArr:
+        str = str.replace(replaceItems[0], replaceItems[1])
+    return str.strip()

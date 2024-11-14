@@ -104,7 +104,7 @@ class ProjectCardVisualization{ // The same project can be shown in multiple loc
         ` : `
             <button type="button" class="btn btn-primary w-100 proj-join-btn">Join Project</button>
             `
-                    
+
         this.projectDiv.innerHTML = `
             <div class="card-body container">
                 <div class="row">
@@ -130,17 +130,38 @@ class ProjectCardVisualization{ // The same project can be shown in multiple loc
                         <p class="card-text ">
                         ${this.baseProjectObj.projectDetails.description}
                         </p>
-                        <h6 class="proj-card-left-footer">
-                        Created: ${this.baseProjectObj.projectDetails.uploadedDate}
-                        </h6>
+                        
+   
+                        <div class="proj-card-left-footer">
+
+                            <div class="d-flex mb-3 project-subheading">
+                                <div class="p-2">Spots available: ${this.baseProjectObj.projectDetails.maxParticipants-this.baseProjectObj.projectDetails.participantCount} | ${this.baseProjectObj.projectDetails.maxParticipants} Total Spots</div>
+                                <div class="ms-auto p-2">Created: ${this.baseProjectObj.projectDetails.uploadedDate.split(' ')[0]}</div>
+                            </div>
+                            <div class="progress mb-3" role="progressbar" aria-label="Participant Count Bar" aria-valuemin="0" aria-valuemax="100">
+                                <div class="progress-bar progress-bar-striped progress-bar-animated project-member-bar" ></div>
+                            </div>
+                            <h6 >
+                            
+                            </h6>
+                        </div>
                     </div>    
                 </div>
                 <div class="col-4">
-                    <img class="border border-dark-subtle rounded mb-1" src="https://ralfvanveen.com/wp-content/uploads/2021/06/Placeholder-_-Begrippenlijst.svg" width="100%" height="120px">
-                    <p>
-                        Start date: ${this.baseProjectObj.projectDetails.startDate} <br>
-                        End date: ${this.baseProjectObj.projectDetails.endDate}
-                    </p>
+                    <img class="border border-dark-subtle rounded mb-1" src="/_general_static/static/uploads/img/projects/${this.baseProjectObj.projectDetails.img}" width="100%" height="120px">
+                    <div class="d-flex mb-2">
+                        <div class="project-subheading" style="min-width: 120px;">
+                            <p>
+                                Start date: ${this.baseProjectObj.projectDetails.startDate.split(' ')[0]} <br>
+                                End date: ${this.baseProjectObj.projectDetails.endDate.split(' ')[0]}
+                            </p>
+                        </div>
+                        <div class="ms-3 d-flex project-location-row">
+                            <i class="fa-regular fa-map mt-2" style="font-size: 25px;"></i> <!--project-location-map-->
+                            <h6 class="ms-1 me-4 mt-1">${this.baseProjectObj.projectDetails.location}</h6>
+                            
+                        </div>
+                    </div>
                     ${joinOrApproveDelBtn}
                 </div>
                 </div>
@@ -152,6 +173,7 @@ class ProjectCardVisualization{ // The same project can be shown in multiple loc
             this.projApproveBtn = this.projectDiv.getElementsByClassName(`proj-approve-btn`)[0]
             this.projJoinBtn = this.projectDiv.getElementsByClassName(`proj-join-btn`)[0]
             this.projApprovedIcon = this.projectDiv.getElementsByClassName(`proj-approved-icon`)[0]
+            this.projectMemberBar = this.projectDiv.getElementsByClassName("project-member-bar")[0]
 
             // Setting up eventlistners
             this.projPinBtn.addEventListener("click", ()=>{
@@ -172,10 +194,14 @@ class ProjectCardVisualization{ // The same project can be shown in multiple loc
                     this.baseProjectObj.projectAction(this.baseProjectObj.projectDetails.joined ? 'leave' : 'join')
                 })
             }
+            this.updateInstance()
     }
 
     updateInstance() { // Updates card based on the baseProjectObj details (Which is shared between all visualizations). This only updates the VISUAL ELEMENTS -> Not if it should be appended/removed from other tables
         // Instances that show for both student/admin
+        console.log(`percentage: ${Math.floor((this.baseProjectObj.projectDetails.participantCount*100)/this.baseProjectObj.projectDetails.maxParticipants)}`)
+        this.projectMemberBar.setAttribute('style',`width: ${Math.floor((this.baseProjectObj.projectDetails.participantCount*100)/this.baseProjectObj.projectDetails.maxParticipants)}%`);
+
         if (this.baseProjectObj.projectDetails.deleted){
             //this.baseProjectObj.delete()
         }
@@ -191,20 +217,25 @@ class ProjectCardVisualization{ // The same project can be shown in multiple loc
         } else {
             this.projApprovedIcon.hidden = true
         }
-        // Seperate instances specifically per user
-        if (this.baseProjectObj.parentSet.admin){ // Admin
+        // Seperate instances specifically per user view
+        if (this.baseProjectObj.parentSet.admin){ // Admin view
 
-        } else { // Student
-            if (this.baseProjectObj.projectDetails.joined){
+        } else { // Student view
+            if (this.baseProjectObj.projectDetails.joined){ //project joined
                 this.projJoinBtn.classList.remove('btn-primary')
                 this.projJoinBtn.classList.add('btn-danger')
                 this.projJoinBtn.innerHTML = 'LEAVE'
 
-
             } else {
-                this.projJoinBtn.classList.add('btn-primary')
-                this.projJoinBtn.classList.remove('btn-danger')
-                this.projJoinBtn.innerHTML = 'JOIN'
+                if (this.baseProjectObj.projectDetails.maxParticipants-this.baseProjectObj.projectDetails.participantCount == 0){ //Project must be full and not joined
+                    this.projJoinBtn.innerHTML = "FULL"
+                    this.projJoinBtn.disabled = true
+                } else{ //project just joined
+                    this.projJoinBtn.classList.add('btn-primary')
+                    this.projJoinBtn.classList.remove('btn-danger')
+                    this.projJoinBtn.innerHTML = 'JOIN'
+                    this.projJoinBtn.disabled = false
+                }
 
             }
         }
@@ -455,7 +486,8 @@ class ProjectScrollDisplay{
             this.readyToLoadProjects = false
             
             var params = {
-                "after": this.loadedProjectIds.size
+                "after": this.loadedProjectIds.size,
+                "yearGroup": globalUserObj.yearGroup
             }
             Object.assign(params, this.getSearchFormValues())
             var responseObj = await fetchPostWrapper("/getProjects", params)
@@ -484,7 +516,7 @@ class ProjectScrollDisplay{
 
     onSearch(){
         this.clearAllProjects()
-        console.log(this.searchForm.querySelector('input[name="searchPinnedCheckbox"]').checked)
+        //console.log(this.searchForm.querySelector('input[name="searchPinnedCheckbox"]').checked)
         this.fetchNewProjects()
     }
 

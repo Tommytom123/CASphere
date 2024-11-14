@@ -6,8 +6,7 @@ const errorStatusList = [500,401]
 
 // General global variables used
 var globalUserObj = {}
-var globalProjectStack = null
-
+var GLOBAL_PROJECT_SET = {}
 
 // HELPER FUNCTIONS
 
@@ -26,6 +25,7 @@ async function fetchPostWrapper(path, body = {}){
 async function fetchPostWrapperForm(path, form){
   var response = await fetch(path, {
       method: "POST",
+
       body: form
     });
   return response.status
@@ -37,9 +37,11 @@ function formatDateTimeToDate(dateString) { // Removes the trailing time returne
 
 function parseIsoDate(dateStr){ //Year-Month-Day
   var splitDateStr = dateStr.split("-");
-  if (splitDateStr[0].length != 4 || splitDateStr[1].length != 2 || splitDateStr[2].length != 2){
-    return false
-  }
+  try{
+    if (splitDateStr[0].length != 4 || splitDateStr[1].length != 2 || splitDateStr[2].length != 2){
+      return false
+    }
+  }catch{false}
   return new Date(parseInt(splitDateStr[0], 10), parseInt(splitDateStr[1], 10) - 1, parseInt(splitDateStr[2], 10));
 }
 
@@ -59,12 +61,15 @@ async function getUserObj(){
 
 function addProjectShowForm(){
   $('#addProjectForm').trigger("reset");
+  
   //Setting the start date input min/max values
   $("#addProjectModal").modal('show');
 }
 
 async function addProjectSubmit(form){
   const formData = new FormData(form);
+  
+  formData.append('projImg', document)
   console.log(formData)
   var responseStatus = await fetchPostWrapperForm("/submitProject", formData)
   switch (responseStatus){
@@ -112,6 +117,7 @@ async function onYearSelectConfirm(){
     var response = await fetchPostWrapper("/assignYearGroup", {'newYearGroup': newYearGroup})
     if (response){
       globalUserObj["yearGroup"] = newYearGroup
+      GLOBAL_PROJECT_SET.projectScroll.onSearch()
       loadYearGroup()
     } else {
       console.log("An error occurred")
@@ -160,16 +166,13 @@ async function initPageOnLoad(){
   switch (globalUserObj["accessLevel"]){
     case 'admin':
       console.log('Show admin page')
+      document.getElementById("admin-nav-link").hidden = false
     default: // Ie: student or other
+      document.getElementById("admin-nav-link").hidden = true
   }
 
-  /*
-  // Getting projects
-  loadSidebar()
-  globalProjectStack = new ProjectStack(globalUserObj["accessLevel"])
-  globalProjectStack.fetchNewProjects()
-  */
-  const mainProjectSet = new ProjectSet(globalUserObj["accessLevel"])
+
+  GLOBAL_PROJECT_SET = new ProjectSet(globalUserObj["accessLevel"])
 
 
 

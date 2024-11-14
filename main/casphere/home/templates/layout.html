@@ -47,10 +47,10 @@
               <a class="nav-link {{ 'active' if current_page == 'Home' else '' }}" aria-current="page" href="#">Home</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link {{ 'active' if current_page == 'Resources' else '' }}" href="#">Resources</a>
+              <a class="nav-link {{ 'active' if current_page == 'Resources' else '' }}" href="https://google.com">Resources</a>
             </li>
-            <li class="nav-item">
-              <a class="nav-link {{ 'active' if current_page == 'Admin' else '' }}" href="#">Admin</a>
+            <li id="admin-nav-link" class="nav-item" hidden>
+              <a class="nav-link {{ 'active' if current_page == 'Admin' else '' }}" href="/admin">Admin</a>
             </li>
             <div class="vl-navbar"></div>
             <li class="nav-item dropdown">
@@ -61,6 +61,13 @@
                 <li><a class="dropdown-item disabled" href="#">Logged in as: {{name}}</a></li>
                 <li><hr class="dropdown-divider"></li>
                 <li><a id="dropDownYearGroup" class="dropdown-item" onclick="showYearSelectPopup()">Year: </a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li>
+                  <div class="ms-3 form-check form-switch">
+                    <input id="recieveEmailsToggle" class="form-check-input" type="checkbox" role="switch">
+                    <label class="form-check-label" for="recieveEmailsToggle">Receive Emails</label>
+                  </div>
+                </li>
                 <li><hr class="dropdown-divider"></li>
                 <li><a class="dropdown-item" href="/logout">Logout</a></li>
               </ul>

@@ -1,6 +1,8 @@
 
 import mysql.connector
-#from ..globalConfig import *
+from .general import replaceStringChars
+from ..globalConfig import *
+from ..globalSecrets import *
 
 #https://dev.mysql.com/doc/connector-python/en/connector-python-connectargs.html
 globalDbConnectionPool = mysql.connector.pooling.MySQLConnectionPool(
@@ -16,11 +18,6 @@ globalDbConnectionPool = mysql.connector.pooling.MySQLConnectionPool(
 # Filter to remove all HTML or other characters that could break the frontend rendering
 globalToReplaceArr = [['<','['],['>',']']]
 
-def replaceStringChars(str):
-    for replaceItems in globalToReplaceArr:
-        str = str.replace(replaceItems[0], replaceItems[1])
-    return str.strip()
-    
 def filterValues(values):
     try:
         # I had initially assumed that the values could be passed as a multi dimensional arr to avoid writing multiple %s's
@@ -31,7 +28,7 @@ def filterValues(values):
             return values
         
         elif (type(values) is str): # base case
-            return replaceStringChars(values)
+            return replaceStringChars(values, globalToReplaceArr)
 
         else: # If int or other datatype that doesn't need replacing -> Base case
             return values

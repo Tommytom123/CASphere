@@ -1,5 +1,6 @@
 from flask import redirect, request, session, render_template, jsonify, Blueprint
 from ..globalConfig import *
+from ..globalSecrets import *
 from .project import *
 from ..core.sessions import *
 

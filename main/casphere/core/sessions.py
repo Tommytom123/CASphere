@@ -58,6 +58,15 @@ def assignYearGroupFromSessionToken(sessionToken, year):
             return  500
     return 401
 
+def updateEmailFromSessionToken(sessionToken, newState):
+    if (sessionExists(sessionToken)):
+        try:
+            dbResponse = executeQuery("UPDATE users AS u LEFT JOIN active_sessions AS acts on acts.user_id = u.id set u.email_permitted = %s where acts.token = %s", [newState, sessionToken])
+            return 200
+        except:
+            return  500
+    return 401
+
 def getuserId(**kwargs):
     userEmail = kwargs['googleAccObj']['email']
     dbResponse = executeQuery("SELECT id FROM users WHERE email = %s", [userEmail])

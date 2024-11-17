@@ -71,7 +71,7 @@
     </div>
     <div class="col-lg-4 d-flex flex-column justify-content-start order-lg-last order-first">
       <!-- Info Card + add proj stack -->
-      <div> 
+      
         <button type="button" class="info-card-btn-width add-proj-btn btn py-3 mt-3 mx-3 shadow" onclick="addProjectShowForm()">
           <span style="font-size: 30px;">ADD PROJECT</span>
         </button>
@@ -112,7 +112,6 @@
             
           </div>
         </div>
-      </div>
 
     </div>
   </div>
@@ -120,6 +119,11 @@
 {% endblock %}
 <!------------------------------------------------------------------------------------------------------>
 {% block popups %}
+
+<!-- Undo delete history button-->
+<div class="d-flex position-fixed bottom-0 w-100 justify-content-end mx-2 mb-4 pe-4" style="z-index: 2000;">
+    <i id="undoDeleteBtn" class="fa-solid fa-trash-can-arrow-up undo-delete-btn" data-bs-toggle="tooltip" data-bs-placement="left" data-bs-title="Undo Delete" hidden></i>
+</div>
 
 <!-- Modal | Select year -->
 <div class="modal fade" id="selectYearModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="selectYearModalLabel" aria-hidden="true">
@@ -273,8 +277,8 @@
                 <div class="col">
                   <label for="addProjectLocation" class="form-label">Project Location</label>
                   <select class="form-select form-select-sm" id="addProjectLocation" name="addProjectLocation">
-                    <option value="inSchool">In School</option>
-                    <option value="outSchool">Out of School</option>
+                    <option value="In School">In School</option>
+                    <option value="Out of School">Out of School</option>
                   </select>
                 </div>
                 <div class="col-7">
@@ -317,7 +321,7 @@
 
 <!-- Tooltip -->
 
-<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 2000;">
   <div id="customToast" class="toast hide" role="alert" aria-live="assertive" aria-atomic="true">
     <div class="toast-header">
       <i class="fa-solid fa-triangle-exclamation"></i>
@@ -331,7 +335,7 @@
 </div>
 
 <!-- Alert -->
-<div id="alertContainer" class="position-fixed top-0 start-50" style="z-index: 11; margin-top:30px;">
+<div id="alertContainer" class="position-fixed top-0 start-50" style="z-index: 2000; margin-top:30px;">
 
 </div>
 

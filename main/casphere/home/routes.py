@@ -34,12 +34,20 @@ def assignYearGroupReq():
     responseCode = assignYearGroupFromSessionToken(session["TOKEN"], request.json['newYearGroup'])
     return {'action':'assignYearGroup'}, responseCode
 
+@home_bp.route("/updateEmail", methods=['POST'])
+def updateEmailReq():
+    responseCode = updateEmailFromSessionToken(session["TOKEN"], request.json['newEmailState'])
+    return {'action':'assignYearGroup'}, responseCode
+
+
+
+
 @home_bp.route("/submitProject", methods=['POST'])
 def submitProjectReq():
     responseCode = submitProject(session["TOKEN"], request.form, request.files)
     return {'action':'submitProject'}, responseCode
 
-
+#For projects
 @home_bp.route("/getProjects", methods=['POST'])
 def getProjectsReq():
     try:

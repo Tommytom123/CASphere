@@ -113,6 +113,10 @@ globalProjectStructure = {
             'dbColRead':'if(prj.approved_by_id IS NOT NULL, 1, 0)',
             'valType': 'int'
         },
+        'emailSent':{
+            'dbColRead':'prj.email_sent',
+            'valType': 'int'
+        },
         'pinned':{
             'dbColRead':'EXISTS(SELECT * FROM projects_pinned as pin WHERE pin.project_id = prj.id AND pin.user_id = %s) as pinned',
             'valType': 'bool',
@@ -299,6 +303,9 @@ def buildProjectSearchQuery(userInfo, queryParams, overrideLimit):
 
     # Get searching Info    
     whereConstraints = []
+
+    whereConstraints.append("prj.deleted != 1")
+
     if (queryParams.get("userOwned",False) == True):
         whereConstraints.append("prj.owner_id = %s")
         values.append(userInfo["userId"])
@@ -401,15 +408,28 @@ def deleteProject(userInfo, projectId):
         return {'deleted': True}, 200
     return {}, 401
 
+def unDeleteProject(userInfo, projectId):
+    if (userInfo['accessLevel'] == 'admin'):
+        queryResponse = executeQuery("UPDATE projects SET deleted = 0 WHERE id = %s", [projectId])
+        return {'deleted': False}, 200
+    return {}, 401
+
 def emailUsersOnProject(userInfo, projectId):
     if (userInfo['accessLevel'] == 'admin'):
-        userEmails = getAllEmailAddresses(['student'])
-        projectDetails = executeQuery("SELECT * FROM projects WHERE project_id = ?", [projectId])
-        emailBody = f"""
-JOIN CAS PROJECT {projectDetails}
+        projectDetails = executeQuery("SELECT prj.title, prj.years, u.email FROM projects AS prj JOIN users AS u ON prj.owner_id = u.id WHERE prj.id = %s", [projectId])
+        userEmails = getAllEmailAddresses(list(projectDetails['data'][0][1]))
+        
+        emailSubject = f"CAS Opportunity: {projectDetails['data'][0][0]}"
+        emailBody = """See CASphere for more info on this project - More details to be added here based on the project"""
+        #remove owners email from arr
+        recipientEmails = []
+        for emailRow in userEmails:
+            if emailRow[0] != projectDetails['data'][0][2]:
+                recipientEmails.append(emailRow[0])
+        sendEmails(emailSubject, emailBody, [], recipientEmails)
 
-"""        
-        sendEmails
+        queryResponse = executeQuery("UPDATE projects SET email_sent = 1 WHERE id = %s", [projectId])
+        return {'emailSent': True}, 200
     return {}, 401
 
 def projectAction(sessionKey, action, projectId):
@@ -431,6 +451,10 @@ def projectAction(sessionKey, action, projectId):
                 return unApproveProject(userInfo, projectId)
             case 'delete':
                 return deleteProject(userInfo, projectId)
+            case 'unDelete':
+                return unDeleteProject(userInfo, projectId)
+            case 'sendEmails':
+                return emailUsersOnProject(userInfo, projectId)
     except Exception as error:
         print(error)
         return {}, 500

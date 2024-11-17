@@ -3,16 +3,19 @@ const actionMessages = {
     success:{
         pin: null,
         unpin: null,
+        delete: 'Success',
+        sendEmails: 'Emails sent'
     },
     error :{
-
+        delete: 'There was an error',
+        sendEmails: 'Error sending emails'
     }
 }
 
 /*
 Project logic
 
-All projects recieved go into a SET (Avoids duplicate objects, and allows tables/cards to act as pointers and live update all occurrences)
+All projects received go into a SET (Avoids duplicate objects, and allows tables/cards to act as pointers and live update all occurrences)
 */
 
 
@@ -21,7 +24,7 @@ Eg project obj
 description: "Test project"
 endDate: "2018-07-25 00:00:00"
 id: 29​
-location: "inSchool"
+location: "In School"
 maxParticipants: 8
 ownerEmail: "huisdeveloper0@gmail.com"
 ownerName: "Tom Brouwers"
@@ -41,6 +44,7 @@ approved: true,
 class ProjectSet{ // Not technically a set, really a separate object which stores all the projects, but mainly ensures that they aren't stored as duplicates
     constructor(accessLevel) {
         this.projectSet = {} // projectID : Project Object (Removes duplicates, thus acting as a set, whilst still being accessible based on a key)
+        this.deletedProjectsStack = []
         this.admin = (accessLevel == 'admin')
 
         //Initializing the main display
@@ -49,6 +53,8 @@ class ProjectSet{ // Not technically a set, really a separate object which store
         //Initializing the sidebar tables
         this.ownedProjectsTable = new ProjectsOwnedTable(this, 'ownedProjectsTable')
         this.joinedProjectsTable = new ProjectsJoinedTable(this, 'joinedProjectsTable')
+
+        this.updateUndoDeleteBtn()
     }
 
     addProject(project){    
@@ -85,6 +91,29 @@ class ProjectSet{ // Not technically a set, really a separate object which store
             })
         }
     }
+
+    async undoDelete(){
+        console.log("Undoing delete")
+        var project = this.projectSet[this.deletedProjectsStack.pop()]
+        var response = await project.projectAction('unDelete')
+        if (response){
+            showAlert('success', `Undid delete of: ${project.projectDetails.title}`)
+        } else {
+            showAlert('danger', `Failed to undo delete of: ${project.projectDetails.title}`)
+            this.deletedProjectsStack.push(project.projectDetails.id)
+        }
+        this.updateUndoDeleteBtn()
+    }
+
+    updateUndoDeleteBtn(){
+        var undoDeleteBtn = document.getElementById("undoDeleteBtn")
+        if (this.deletedProjectsStack.length == 0){
+            undoDeleteBtn.hidden = true               
+        } else {
+            undoDeleteBtn.hidden = false
+        }
+    }
+
 }
 
 // A single project item
@@ -115,6 +144,7 @@ class ProjectCardVisualization{ // The same project can be shown in multiple loc
                         <span class="">${this.baseProjectObj.projectDetails.title}</span>
 
                         <i class="fa-solid ms-auto fa-thumbtack proj-pin-btn"></i>
+                        ${this.baseProjectObj.parentSet.admin ? `<i class="fa-solid  px-2 ${this.baseProjectObj.projectDetails.emailSent ? 'fa-envelope-circle-check' : 'fa-envelope'} proj-email-btn"></i>` : ''}
                     </div>
                     
                     <hr class="proj-line-break">
@@ -131,12 +161,12 @@ class ProjectCardVisualization{ // The same project can be shown in multiple loc
                         ${this.baseProjectObj.projectDetails.description}
                         </p>
                         
-   
                         <div class="proj-card-left-footer">
 
                             <div class="d-flex mb-3 project-subheading">
-                                <div class="p-2">Spots available: ${this.baseProjectObj.projectDetails.maxParticipants-this.baseProjectObj.projectDetails.participantCount} | ${this.baseProjectObj.projectDetails.maxParticipants} Total Spots</div>
+                                <div class="p-2 proj-bottom-info-txt">Spots available: ${this.baseProjectObj.projectDetails.maxParticipants-this.baseProjectObj.projectDetails.participantCount} | ${this.baseProjectObj.projectDetails.maxParticipants} Total Spots | For years: ${formatArrayToStr(this.baseProjectObj.projectDetails.years, true)}</div>
                                 <div class="ms-auto p-2">Created: ${this.baseProjectObj.projectDetails.uploadedDate.split(' ')[0]}</div>
+
                             </div>
                             <div class="progress mb-3" role="progressbar" aria-label="Participant Count Bar" aria-valuemin="0" aria-valuemax="100">
                                 <div class="progress-bar progress-bar-striped progress-bar-animated project-member-bar" ></div>
@@ -157,8 +187,8 @@ class ProjectCardVisualization{ // The same project can be shown in multiple loc
                             </p>
                         </div>
                         <div class="ms-3 d-flex project-location-row">
-                            <i class="fa-regular fa-map mt-2" style="font-size: 25px;"></i> <!--project-location-map-->
-                            <h6 class="ms-1 me-4 mt-1">${this.baseProjectObj.projectDetails.location}</h6>
+                            <i class="fa-regular fa-map mt-2 project-location-map" style="font-size: 25px;"></i>
+                            <h6 class="ms-2 me-4 mt-1">${this.baseProjectObj.projectDetails.location}</h6>
                             
                         </div>
                     </div>
@@ -174,20 +204,35 @@ class ProjectCardVisualization{ // The same project can be shown in multiple loc
             this.projJoinBtn = this.projectDiv.getElementsByClassName(`proj-join-btn`)[0]
             this.projApprovedIcon = this.projectDiv.getElementsByClassName(`proj-approved-icon`)[0]
             this.projectMemberBar = this.projectDiv.getElementsByClassName("project-member-bar")[0]
+            this.projBottomInfoTxt = this.projectDiv.getElementsByClassName("proj-bottom-info-txt")[0]
+            this.emailProjectsBtn = this.projectDiv.getElementsByClassName("proj-email-btn")[0]
 
             // Setting up eventlistners
             this.projPinBtn.addEventListener("click", ()=>{
                 this.baseProjectObj.projectAction(this.baseProjectObj.projectDetails.pinned ? 'unpin' : 'pin') // Has a {key:value pair of the new value for  this.projectDetails}
             })
             
+            this.emailProjectsBtn.addEventListener("click", async ()=>{
+                if (this.baseProjectObj.projectDetails.emailSent != true){
+                    var response = await this.baseProjectObj.projectAction("sendEmails")
+                    if (response) {
+                        this.emailProjectsBtn.classList.remove('fa-envelope')
+                        this.emailProjectsBtn.classList.add('fa-envelope-circle-check')
+                    }
+                }
+            })
+
             if (this.baseProjectObj.parentSet.admin){
                 this.projApproveBtn.addEventListener("click", ()=>{
                     console.log('approve')
                     this.baseProjectObj.projectAction(this.baseProjectObj.projectDetails.approved == true ? 'unapprove' : 'approve')
                     })
-                this.projDeleteBtn.addEventListener("click", ()=>{
-                    console.log('delete')
-                    this.baseProjectObj.projectAction('delete')
+                this.projDeleteBtn.addEventListener("click", async()=>{
+                    var response = await this.baseProjectObj.projectAction('delete')
+                    if (response) {
+                        this.baseProjectObj.parentSet.deletedProjectsStack.push(this.baseProjectObj.projectDetails.id)
+                        this.baseProjectObj.parentSet.updateUndoDeleteBtn()
+                    }
                 })
             }else{
                 this.projJoinBtn.addEventListener("click", ()=>{
@@ -199,11 +244,13 @@ class ProjectCardVisualization{ // The same project can be shown in multiple loc
 
     updateInstance() { // Updates card based on the baseProjectObj details (Which is shared between all visualizations). This only updates the VISUAL ELEMENTS -> Not if it should be appended/removed from other tables
         // Instances that show for both student/admin
-        console.log(`percentage: ${Math.floor((this.baseProjectObj.projectDetails.participantCount*100)/this.baseProjectObj.projectDetails.maxParticipants)}`)
         this.projectMemberBar.setAttribute('style',`width: ${Math.floor((this.baseProjectObj.projectDetails.participantCount*100)/this.baseProjectObj.projectDetails.maxParticipants)}%`);
-
+        this.projBottomInfoTxt.innerHTML = `Spots available: ${this.baseProjectObj.projectDetails.maxParticipants-this.baseProjectObj.projectDetails.participantCount}/${this.baseProjectObj.projectDetails.maxParticipants} | For years: ${formatArrayToStr(this.baseProjectObj.projectDetails.years, true)}`
+        
         if (this.baseProjectObj.projectDetails.deleted){
-            //this.baseProjectObj.delete()
+            this.projectDiv.hidden = true
+        } else {
+            this.projectDiv.hidden = false
         }
 
         if (this.baseProjectObj.projectDetails.pinned){ // Pinned
@@ -345,16 +392,22 @@ class Project {
         })
         // If an error, the responseJson will be an error int. Else it will be an key/value pair with the new values
         console.log(responseJson)
-        if (!errorStatusList.includes(responseJson)){ 
+        if (responseJson){ 
             Object.keys(responseJson).forEach((key)=>{ // Update the old values with the new
                 this.projectDetails[key] = responseJson[key]
             })
             this.updateAllProjectInstances()
-            var responseMsg = responseJson.success ? actionMessages.success[action] : actionMessages.error[action]
+            var responseMsg = actionMessages.success[action]
             if (responseMsg) { // Not null or undefined/ it exists
-                showAlert(responseJson.success? '': '', responseMsg)
+                showAlert('success', responseMsg)
             }
+            return true
         }
+        var responseMsg = actionMessages.error[action]
+        if (responseMsg) { // Not null or undefined/ it exists
+            showAlert('danger', responseMsg)
+        }
+        return false
     }
     
 }
@@ -418,7 +471,7 @@ class ProjectScrollDisplay{
         
         // Load the first batch of objects
         this.readyToLoadProjects = true
-        this.fetchNewProjects()
+        //this.fetchNewProjects()
     }
 
     toggleScrollToTopBtn(){
@@ -487,7 +540,7 @@ class ProjectScrollDisplay{
             
             var params = {
                 "after": this.loadedProjectIds.size,
-                "yearGroup": globalUserObj.yearGroup
+                "yearGroup": GLOBAL_USER_OBJ.yearGroup
             }
             Object.assign(params, this.getSearchFormValues())
             var responseObj = await fetchPostWrapper("/getProjects", params)

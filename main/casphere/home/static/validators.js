@@ -2,7 +2,13 @@
 
 // Called on load of page
 function onLoadValidators(){
-    // Event listner to change the text 
+    // Event Listener for the email toggle btn
+    document.getElementById("receiveEmailsToggle").onchange = () => onEmailSettingsUpdate()
+    
+    // Onclick event for the undo delete btn
+    document.getElementById("undoDeleteBtn").onclick = () => GLOBAL_PROJECT_SET.undoDelete()
+
+    // Event listener to change the text 
     const participantSlider = document.querySelector("#maxParticipantsSlider");
     const participantNumField = document.querySelector("#maxParticipantsInput");
     participantSlider.addEventListener("input", (event) => {

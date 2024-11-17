@@ -144,6 +144,27 @@ transition: opacity 1s;
 opacity: 0;
 }
 
+.undo-delete-btn {
+  color: grey;
+  font-size:20px;
+}
+
+.undo-delete-btn:hover {
+  color: black;
+  font-size:20px;
+}
+
+.proj-email-btn.fa-envelope-circle-check {
+  color: black;
+}
+
+.proj-email-btn.fa-envelope {
+  color: grey;
+}
+
+.proj-email-btn.fa-envelope:hover {
+  color: black;
+}
 
 /* Hiding the arrows from number input: https://www.w3schools.com/howto/howto_css_hide_arrow_number.asp */
 
@@ -212,7 +233,7 @@ input[type=number] {
   --bs-btn-hover-bg: #29738a;
   top:150px;
   right: 0;
-  z-index: 11;
+  z-index: 20;
   width: 100px
 }
 
@@ -251,6 +272,7 @@ input[type=number] {
   
 .project-location-map {
   font-size: 35px;
+  color: rgb(63, 63, 63);
 }
 
 .proj-pin-btn {
